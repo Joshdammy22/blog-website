@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock title %}
+
+{% block contents %}
+<article class="blog-post">
+  <h1>{{ post.title }}</h1>
+  <p>By {{ post.author }} on {{ post.date }}</p>
+  <div class="content">
+    {{ post.content | safe }}
+  </div>
+</article>
+<section class="related-posts">
+  <h2>Related Posts</h2>
+  <ul>
+    {% for related_post in related_posts %}
+      <li><a href="{{ related_post.url }}">{{ related_post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock contents %}
