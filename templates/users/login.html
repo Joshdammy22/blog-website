@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+{% load static %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Login</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary mt-3">Login</button>
+    </form>
+    
+
+    <div class="mt-4">
+        <h4>Or login with:</h4>
+        <div class="d-flex gap-3 mt-3">
+            <!-- Google -->
+            <a href="{% provider_login_url 'google' %}" class="btn btn-light d-flex align-items-center gap-2">
+                <img src="{% static 'images/google.png' %}" alt="Google" style="width: 20px; height: 20px;">
+                Login with Google
+            </a>
+
+            <!-- Facebook -->
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                <img src="{% static 'images/fb.png' %}" alt="Facebook" style="width: 20px; height: 20px;">
+                Login with Facebook
+            </a>
+
+            <!-- X (Twitter) -->
+            <a href="{% provider_login_url 'twitter' %}" class="btn btn-info d-flex align-items-center gap-2">
+                <img src="{% static 'images/x.png' %}" alt="Twitter" style="width: 20px; height: 20px;">
+                Login with X
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %} 

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Your Blog Interactions</h2>
+    <ul class="list-group">
+        {% for interaction in interactions %}
+            <li class="list-group-item">
+                <strong>{{ interaction.blog.title }}</strong> - {{ interaction.interaction_type }}
+                <span class="text-muted">on {{ interaction.timestamp }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Settings</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="email_notifications" name="email_notifications" 
+                {% if settings.email_notifications %}checked{% endif %}>
+            <label class="form-check-label" for="email_notifications">Email Notifications</label>
+        </div>
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="dark_mode" name="dark_mode" 
+                {% if settings.dark_mode %}checked{% endif %}>
+            <label class="form-check-label" for="dark_mode">Dark Mode</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+</div>
+{% endblock %}

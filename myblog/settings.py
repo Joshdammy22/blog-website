@@ -41,7 +41,22 @@ INSTALLED_APPS = [
     #My Apps
     'blog',
     'users',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'two_factor',
+
+    #socials
+    'django.contrib.sites',  # Required by allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.twitter',
 ]
+
+# Middleware stays the same
+SITE_ID = 1 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,9 +66,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'allauth.account.middleware.AccountMiddleware', 
 ]
 
 ROOT_URLCONF = 'myblog.urls'
+#AUTH_USER_MODEL = 'user.CustomUser'
 
 TEMPLATES = [
     {
@@ -77,12 +95,43 @@ WSGI_APPLICATION = 'myblog.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+import os
+import sys
+from pathlib import Path
+from decouple import config
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+try:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('MYSQL_DATABASE_NAME'),
+            'USER': config('MYSQL_DATABASE_USER'),
+            'PASSWORD': config('MYSQL_DATABASE_PASSWORD'),
+            'HOST': config('MYSQL_DATABASE_HOST', default='127.0.0.1'),
+            'PORT': config('MYSQL_DATABASE_PORT', default='3306'),
+        }
     }
-}
+    
+    # Test MySQL connection
+    import pymysql
+    pymysql.connect(
+        host=config('MYSQL_DATABASE_HOST', default='127.0.0.1'),
+        user=config('MYSQL_DATABASE_USER'),
+        password=config('MYSQL_DATABASE_PASSWORD'),
+        database=config('MYSQL_DATABASE_NAME'),
+        port=int(config('MYSQL_DATABASE_PORT', default='3306')),
+    )
+except Exception as e:
+    print(f"Failed to connect to MySQL: {e}", file=sys.stderr)
+    print("Switching to SQLite as fallback database.", file=sys.stderr)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -103,6 +152,53 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Django's default auth backend
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
+]
+
+AUTHENTICATION_BACKENDS = ['users.backends.EmailOrUsernameBackend']
+
+
+from decouple import config
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f"Your App <{EMAIL_HOST_USER}>"
+
+# Social Auth settings
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'APP': {
+            'client_id': config('FACEBOOK_APP_ID'),
+            'secret': config('FACEBOOK_APP_SECRET'),
+            'key': ''
+        },
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
+        'FIELDS': ['id', 'email', 'name'],
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v17.0'
+    },
+    'twitter': {
+        'SCOPE': ['email'],
+        'AUTH_PARAMS': {},
+        'OAUTH2_CLIENT_ID': config('TWITTER_CLIENT_ID'),
+        'OAUTH2_CLIENT_SECRET': config('TWITTER_CLIENT_SECRET'),
+    }
+}
+
+# If you want to use email verification
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATED_REDIRECT_URL = '/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
