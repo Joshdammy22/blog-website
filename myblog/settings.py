@@ -41,18 +41,15 @@ INSTALLED_APPS = [
     #My Apps
     'blog',
     'users',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'two_factor',
 
-    #socials
-    'django.contrib.sites',  # Required by allauth
+
+     # Other apps...
+    'django.contrib.sites',  # Make sure this is included
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',
-    'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.facebook',  # For Facebook login
+    'allauth.socialaccount.providers.twitter',   # For X (Twitter) login
 ]
 
 # Middleware stays the same
@@ -66,12 +63,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_otp.middleware.OTPMiddleware',
     'allauth.account.middleware.AccountMiddleware', 
 ]
 
 ROOT_URLCONF = 'myblog.urls'
-#AUTH_USER_MODEL = 'user.CustomUser'
 
 TEMPLATES = [
     {
@@ -152,12 +147,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # Django's default auth backend
+AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
-]
-
-AUTHENTICATION_BACKENDS = ['users.backends.EmailOrUsernameBackend']
+    'django.contrib.auth.backends.ModelBackend',  # Default Django authentication backend
+)
 
 
 from decouple import config
@@ -171,7 +164,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Your App <{EMAIL_HOST_USER}>"
 
-# Social Auth settings
+
+
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
         'APP': {
@@ -185,7 +179,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'INIT_PARAMS': {'cookie': True},
         'FIELDS': ['id', 'email', 'name'],
         'VERIFIED_EMAIL': False,
-        'VERSION': 'v17.0'
+        'VERSION': 'v17.0',
     },
     'twitter': {
         'SCOPE': ['email'],
@@ -195,10 +189,17 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# If you want to use email verification
+# Social Auth redirect URL
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
+
+# Email settings (optional)
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATED_REDIRECT_URL = '/'
+
+# Logout settings
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_ON_GET = True
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

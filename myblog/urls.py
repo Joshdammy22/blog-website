@@ -19,22 +19,22 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-# Import the two_factor URLs
-try:
-    from two_factor.urls import urlpatterns as two_factor_urls
-except ImportError:
-    two_factor_urls = [] 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Admin URLs
+    path('admin/', admin.site.urls),  # Default admin login and dashboard
+
+    # Home page
     path('', views.home, name='home'),
-    path('blogs', include('blog.urls')),
+
+    # Blog app URLs
+    path('blogs/', include('blog.urls')),
+
+    # User app URLs
     path('user/', include('users.urls')),
-    path('accounts/', include('allauth.urls')),
 
-    #path('account/', include((two_factor_urls, 'two_factor'), namespace='two_factor')),  # Include two_factor URLs correctly
+    path('accounts/', include('allauth.urls')), 
 ]
-
 if settings.DEBUG:
     # For static files
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

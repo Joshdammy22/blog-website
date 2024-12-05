@@ -24,17 +24,17 @@ def register(request):
             Profile.objects.create(user=user)
             send_verification_email(request, user)
 
-            print(f"Verification email sent to {user.email}.")
+            print(f"Verification email sent to {user.email}.")  # Debugging
             messages.success(request, 'Registration successful. Please check your email to verify your account.')
             return redirect('login')
         else:
             print("Registration form is invalid:", form.errors)  # Debugging
+            messages.error(request, 'There was an error with your registration. Please try again.')
     else:
         form = UserRegisterForm()
+
     print("Passing form to template.")  # Debugging
     return render(request, 'users/register.html', {'form': form})
-
-
 
 # User Login View
 def login_view(request):
@@ -46,10 +46,9 @@ def login_view(request):
         if form.is_valid():
             username_or_email = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            print(f"Attempting login for {username_or_email}.")  
-            user = authenticate(
-                request, username=username_or_email, password=password
-            )
+            print(f"Attempting login for {username_or_email}.")  # Debugging
+            
+            user = authenticate(request, username=username_or_email, password=password)
             if user is not None:
                 login(request, user)
                 try:
@@ -63,38 +62,54 @@ def login_view(request):
                         [user.email],
                         fail_silently=False,
                     )
+                    print(f"OTP sent to {user.email}.")  # Debugging
                     return redirect('verify_otp')  # Redirect to OTP verification page
                 except ValidationError as e:
                     messages.error(request, str(e))
+                    print(f"OTP generation failed: {e}")  # Debugging
                     return redirect('login')
             else:
                 messages.error(request, 'Invalid credentials')
+                print(f"Login failed for {username_or_email}.")  # Debugging
+        else:
+            print("Login form is invalid:", form.errors)  # Debugging
+            messages.error(request, 'There was an error with your login. Please try again.')
+
     print("Passing form to template.")  # Debugging
     return render(request, 'users/login.html', {'form': form})
 
 
 def verify_otp(request):
     """Handle OTP verification"""
+    print("Accessing OTP verification view...")  # Debugging
     if request.method == 'POST':
         otp_code = request.POST.get('otp')
         try:
             otp = OTP.objects.get(user=request.user, otp=otp_code, is_verified=False)
+            print(f"Attempting OTP verification for {request.user.username}.")  # Debugging
 
             if otp.is_expired():
                 messages.error(request, 'OTP has expired. Please request a new one.')
+                print(f"OTP expired for {request.user.username}.")  # Debugging
                 return redirect('login')  # Optionally, redirect to login page or retry OTP
 
             otp.is_verified = True
             otp.save()
+            messages.success(request, 'OTP verified successfully.')
+            print(f"OTP verified successfully for {request.user.username}.")  # Debugging
             return redirect('home')  # Redirect to home or dashboard after successful verification
 
         except OTP.DoesNotExist:
             messages.error(request, 'Invalid OTP')
+            print(f"Invalid OTP entered for {request.user.username}.")  # Debugging
 
+    print("Passing OTP verification form to template.")  # Debugging
     return render(request, 'users/verify_otp.html')
+
 
 def resend_otp(request):
     """Handle resending OTP if the current OTP has expired"""
+    print("Accessing resend OTP view...")  # Debugging
     if request.method == "POST":
         try:
             otp = OTP.objects.get(user=request.user, is_verified=False)
@@ -113,12 +128,16 @@ def resend_otp(request):
                     fail_silently=False,
                 )
                 messages.success(request, 'A new OTP has been sent to your email.')
+                print(f"A new OTP has been sent to {request.user.email}.")  # Debugging
             else:
                 messages.error(request, 'Your OTP is still valid. Please use it before requesting a new one.')
+                print(f"OTP for {request.user.username} is still valid.")  # Debugging
         except OTP.DoesNotExist:
             messages.error(request, 'No valid OTP found. Please request a new OTP.')
+            print(f"No valid OTP found for {request.user.username}.")  # Debugging
 
     return redirect('verify_otp')  # Redirect to OTP verification page
+
 
 
 # User Logout View
