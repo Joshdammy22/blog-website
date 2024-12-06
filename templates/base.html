@@ -12,6 +12,7 @@
   <meta name="title" content="Blogy - Hey, we’re Blogy. See our thoughts, stories and ideas.">
   <meta name="description" content="This is a blog html template made by codewithsadee">
 
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <!-- Favicon -->
   <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/svg+xml">
 
@@ -26,7 +27,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-
   <style>
     /* Flash message styling */
   .flash-message {
@@ -110,11 +110,14 @@
           <li class="navbar-item">
             <a href="#" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
           </li>
-          <li class="navbar-item">
+          {% comment %} <li class="navbar-item">
             <a href="#" class="navbar-link hover:underline" data-nav-link>Membership</a>
-          </li>
+          </li> {% endcomment %}
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
+          </li>
+          <li class="navbar-item">
+            <a href="{% url 'register' %}" class="btn" data-nav-link>Join</a>
           </li>
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
@@ -146,7 +149,6 @@
       {% if user.is_authenticated %}
         <a href="{% url 'profile' %}" class="btn">Dashboard</a>
       {% else %}
-        <a href="{% url 'register' %}" class="btn">Join</a>
       {% endif %}
     </div>
   </div>

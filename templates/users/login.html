@@ -1,12 +1,79 @@
 {% extends 'base.html' %}
-{% load socialaccount %}
 {% load static %}
+{% load socialaccount %}
+
 
 {% block title %} Sign In {% endblock title %}
 
 
 {% block contents %}
 <style>
+    /* General container for social register section */
+    .social-register {
+        margin-top: 1rem;
+        text-align: center;
+    }
+    
+    .social-register h4 {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        color: #333;
+    }
+    
+    /* Social buttons container */
+    .social-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    /* General style for social buttons */
+    .social-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    
+    /* Icon inside social buttons */
+    .social-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* Facebook button styling */
+    .facebook-btn {
+        background-color: #3b5998;
+        color: #fff;
+        border: 1px solid #3b5998;
+    }
+    
+    .facebook-btn:hover {
+        background-color: #2d4373;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Twitter (X) button styling */
+    .twitter-btn {
+        background-color: #1da1f2;
+        color: #fff;
+        border: 1px solid #1da1f2;
+    }
+    
+    .twitter-btn:hover {
+        background-color: #0d8cd9;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+
+
+
     /* Styling for the eye icon inside the input field */
     .input-group {
         position: relative;
@@ -158,13 +225,13 @@ h2 {
 </style>
 <div class="login-container">
     <h2 class="text-center">Login</h2>
-    <form method="POST">
+    <form method="POST" novalidate>
         {% csrf_token %}
         
-        <!-- Username -->
+        <!-- Username Field -->
         <div class="form-field">
-            <label for="username">Username</label>
-            {{ form.username }}  <!-- Render username field -->
+            <label for="username">Username or Email</label>
+            {{ form.username }}
             {% if form.username.errors %}
                 <div class="error-message">
                     {% for error in form.username.errors %}
@@ -174,11 +241,11 @@ h2 {
             {% endif %}
         </div>
     
-        <!-- Password -->
+        <!-- Password Field -->
         <div class="form-field">
             <label for="password">Password</label>
             <div class="input-group">
-                {{ form.password }}  <!-- Render password field -->
+                {{ form.password }}
                 <div class="input-group-append">
                     <i class="fas fa-eye toggle-password" id="toggle-password-login"></i>
                 </div>
@@ -191,60 +258,65 @@ h2 {
                 </div>
             {% endif %}
         </div>
-
-        <!-- Login Button -->
-        <button type="submit" class="login-btn">Login</button>
+    
+        <!-- reCAPTCHA Field -->
+        <div class="form-field">
+            <label for="captcha">Please verify you are human</label>
+            {{ form.captcha }}
+            {% if form.captcha.errors %}
+                <div class="error-message">
+                    {% for error in form.captcha.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    
+        <!-- Hidden reCAPTCHA Token -->
+        <input type="hidden" id="recaptcha_token" name="recaptcha_token">
+    
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary login-btn">Login</button>
     </form>
     
-
-    <!-- Optional: Add a link to registration page -->
+    <!-- Registration Link -->
     <div class="register-link">
         <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
     </div>
-</div>
-
     
-
-    {% comment %} <div class="mt-4">
-        <h4>Or login with:</h4>
-        <div class="d-flex gap-3 mt-3">
-            <!-- Facebook -->
-            <a href="{% provider_login_url 'facebook' %}" class="btn btn-primary d-flex align-items-center gap-2">
-                <img src="{% static 'images/fb.png' %}" alt="Facebook" style="width: 20px; height: 20px;">
-                Login with Facebook
+    <!-- Social Login -->
+    <div class="social-register mt-4">
+        <h4>Or Log in with:</h4>
+        <div class="social-buttons">
+            <a href="{% provider_login_url 'facebook' %}" class="social-btn">
+                <img src="{% static 'images/fb.png' %}" alt="Facebook" class="social-icon">
             </a>
-
-            <!-- X (Twitter) -->
-            <a href="{% provider_login_url 'twitter' %}" class="btn btn-info d-flex align-items-center gap-2">
-                <img src="{% static 'images/x.png' %}" alt="Twitter" style="width: 20px; height: 20px;">
-                Login with X
+            <a href="{% provider_login_url 'twitter' %}" class="social-btn">
+                <img src="{% static 'images/x.png' %}" alt="Twitter" class="social-icon">
+            </a>
+            <a href="{% provider_login_url 'github' %}" class="social-btn">
+                <img src="{% static 'images/github.png' %}" alt="GitHub" class="social-icon">
             </a>
         </div>
-    </div> {% endcomment %}
-</div>
-<script>
-    // Function to toggle password visibility
-    function togglePassword(passwordFieldId, toggleIconId) {
-        const passwordField = document.getElementById(passwordFieldId);
-        const toggleIcon = document.getElementById(toggleIconId);
-
-        if (passwordField.type === "password") {
-            passwordField.type = "text";  // Show password
-            toggleIcon.classList.remove("fa-eye");  // Change to open eye icon
-            toggleIcon.classList.add("fa-eye-slash");  // Change to closed eye icon
-        } else {
-            passwordField.type = "password";  // Hide password
-            toggleIcon.classList.remove("fa-eye-slash");  // Change to closed eye icon
-            toggleIcon.classList.add("fa-eye");  // Change to open eye icon
-        }
-    }
-
-    // Add event listener to the login password eye icon
-    document.getElementById('toggle-password-login').addEventListener('click', function() {
-        togglePassword('id_password', 'toggle-password-login');
-    });
-</script>
-
+    </div>
+    
+    <!-- Password Visibility Toggle Script -->
+    <script>
+        document.getElementById('toggle-password-login').addEventListener('click', function () {
+            const passwordField = document.getElementById('id_password');
+            const toggleIcon = this;
+    
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
 {% endblock %}
 
 {% block footer %}

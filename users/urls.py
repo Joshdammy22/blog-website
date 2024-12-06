@@ -12,6 +12,8 @@ urlpatterns = [
 
     # User Registration
     path('register/', views.register, name='register'),
+    path('verify-email/<str:token>/', views.email_verification, name='email_verification'),
+
 
     # User Login
     path('login/', views.login_view, name='login'),

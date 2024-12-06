@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,9 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
+
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,23 +38,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django.contrib.sites',
     #My Apps
     'blog',
     'users',
 
+    
+    'django_recaptcha',
 
-     # Other apps...
-    'django.contrib.sites',  # Make sure this is included
+    # Django Allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.facebook',  # For Facebook login
-    'allauth.socialaccount.providers.twitter',   # For X (Twitter) login
+    'allauth.socialaccount.providers.facebook',  # Facebook
+    'allauth.socialaccount.providers.twitter',   # Twitter
+    'allauth.socialaccount.providers.github',    # GitHub
 ]
 
-# Middleware stays the same
-SITE_ID = 1 
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -63,26 +65,35 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware', 
+
+    'allauth.account.middleware.AccountMiddleware',
 ]
+
 
 ROOT_URLCONF = 'myblog.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request',  # Required by Allauth
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
     },
 ]
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default backend
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
+]
+
 
 WSGI_APPLICATION = 'myblog.wsgi.application'
 
@@ -147,13 +158,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = (
-    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
-    'django.contrib.auth.backends.ModelBackend',  # Default Django authentication backend
-)
-
 
 from decouple import config
+
+
+# Recaptcha Credentials
+RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
+
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -164,13 +176,28 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Your App <{EMAIL_HOST_USER}>"
 
+# Email settings (optional)
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
 
+# Facebook OAuth Credentials
+FACEBOOK_APP_ID = config('FACEBOOK_APP_ID')
+FACEBOOK_APP_SECRET = config('FACEBOOK_APP_SECRET')
 
+# Twitter/X OAuth 1.0a Credentials
+TWITTER_CONSUMER_KEY = config('TWITTER_CONSUMER_KEY')
+TWITTER_CONSUMER_SECRET = config('TWITTER_CONSUMER_SECRET')
+
+# GitHub OAuth Credentials
+SOCIAL_AUTH_GITHUB_KEY = config('SOCIAL_AUTH_GITHUB_KEY')
+SOCIAL_AUTH_GITHUB_SECRET = config('SOCIAL_AUTH_GITHUB_SECRET')
+
+# Social Account Providers Configuration
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
         'APP': {
-            'client_id': config('FACEBOOK_APP_ID'),
-            'secret': config('FACEBOOK_APP_SECRET'),
+            'client_id': FACEBOOK_APP_ID,
+            'secret': FACEBOOK_APP_SECRET,
             'key': ''
         },
         'METHOD': 'oauth2',
@@ -182,23 +209,34 @@ SOCIALACCOUNT_PROVIDERS = {
         'VERSION': 'v17.0',
     },
     'twitter': {
+        'APP': {
+            'client_id': TWITTER_CONSUMER_KEY,
+            'secret': TWITTER_CONSUMER_SECRET,
+            'key': ''
+        },
+        'METHOD': 'oauth1',
         'SCOPE': ['email'],
-        'AUTH_PARAMS': {},
-        'OAUTH2_CLIENT_ID': config('TWITTER_CLIENT_ID'),
-        'OAUTH2_CLIENT_SECRET': config('TWITTER_CLIENT_SECRET'),
+    },
+    'github': {
+        'APP': {
+            'client_id': SOCIAL_AUTH_GITHUB_KEY,
+            'secret': SOCIAL_AUTH_GITHUB_SECRET,
+            'key': ''
+        },
+        'REDIRECT_URL': 'http://localhost:8000/accounts/github/login/callback/',
+        'METHOD': 'oauth2',
+        'SCOPE': ['user', 'user:email'],
+        'FIELDS': ['id', 'email', 'login'],
+        'VERIFIED_EMAIL': True,
     }
 }
 
-# Social Auth redirect URL
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
-
-# Email settings (optional)
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_EMAIL_REQUIRED = True
-
-# Logout settings
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+# Redirect URLs
+LOGIN_REDIRECT_URL = '/'  # After login
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"  # After logout
 ACCOUNT_LOGOUT_ON_GET = True
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/login-error/'
+
 
 
 # Internationalization

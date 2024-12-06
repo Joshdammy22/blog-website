@@ -17,7 +17,7 @@ def send_verification_email(request, user):
     """
     Sends an email verification link to the user.
     """
-    profile = user.profile
+    profile, _ = Profile.objects.get_or_create(user=user)
     token = generate_verification_token()
     profile.verification_token = token
     profile.save()

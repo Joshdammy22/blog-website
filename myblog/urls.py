@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from allauth.socialaccount.providers.github.urls import urlpatterns as github_urlpatterns
+
 
 urlpatterns = [
     # Admin URLs
@@ -31,10 +33,11 @@ urlpatterns = [
     path('blogs/', include('blog.urls')),
 
     # User app URLs
-    path('user/', include('users.urls')),
+    path('users/', include('users.urls')),
 
     path('accounts/', include('allauth.urls')), 
-]
+]+ github_urlpatterns
+
 if settings.DEBUG:
     # For static files
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

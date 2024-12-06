@@ -3,10 +3,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
 from .models import Profile
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
+
 
 class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
+    email = forms.EmailField(required=True)    
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
@@ -29,6 +31,8 @@ class UserRegisterForm(UserCreationForm):
         return username
 
 
+
+
 class UserLoginForm(AuthenticationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={
@@ -48,6 +52,7 @@ class UserLoginForm(AuthenticationForm):
             'required': 'Password is required.'
         }
     )
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox())
 
 
 class ProfileUpdateForm(forms.ModelForm):
