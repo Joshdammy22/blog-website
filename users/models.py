@@ -8,6 +8,7 @@ import random
 import time
 from datetime import timedelta
 from django.utils import timezone
+from django.urls import reverse
 
 
 class Profile(models.Model):
@@ -15,7 +16,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True, null=True, help_text="Write a short bio about yourself.")
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='authors/', null=True, blank=True)
     phone_number = models.CharField(
         max_length=15,
         blank=True,
@@ -91,3 +92,15 @@ class OTP(models.Model):
     def __str__(self):
         return f"OTP for {self.user.username}"
 
+class SubscriptionList(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
+    user_email = models.EmailField(max_length=254)
+    time_submitted = models.DateTimeField(default=now)
+    verified = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "SubscriptionList"
+        verbose_name_plural = "SubscriptionLists"
+
+    def __str__(self):
+        return self.user_email

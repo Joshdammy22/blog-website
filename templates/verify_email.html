@@ -1,0 +1,7 @@
+<h2>Verify Your Email</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="token">Enter Verification Token:</label>
+    <input type="text" name="token" required>
+    <button type="submit" class="btn">Verify</button>
+</form>

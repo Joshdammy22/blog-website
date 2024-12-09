@@ -28,6 +28,7 @@ urlpatterns = [
 
     # Home page
     path('', views.home, name='home'),
+    path('verify_email/', views.verify_email, name='verify_email'),
 
     # Blog app URLs
     path('blogs/', include('blog.urls')),

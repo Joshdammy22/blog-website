@@ -125,3 +125,12 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         if password1.isdigit():
             raise ValidationError("Password cannot be entirely numeric.")
         return password1
+
+class SubscriptionListForm(forms.Form):
+    user_email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'email-field',
+            'placeholder': 'Your email address'
+        })
+    )

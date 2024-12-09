@@ -102,11 +102,15 @@
 
     <nav class="navbar" data-navbar>
       <ul class="navbar-list">
-        <li class="navbar-item">
-          <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
-        </li>
         <!-- Conditionally rendered links based on user authentication status -->
         {% if user.is_authenticated %}
+          <button class="search-btn" aria-label="search" data-search-toggler>
+            <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+            <span class="span">Search</span>
+          </button>
+          <li class="navbar-item">
+            <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
+          </li>
           <li class="navbar-item">
             <a href="#" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
           </li>
@@ -116,18 +120,17 @@
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
-          <li class="navbar-item">
+          {% comment %} <li class="navbar-item">
             <a href="{% url 'register' %}" class="btn" data-nav-link>Join</a>
-          </li>
+          </li> {% endcomment %}
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
           </li>
           <div class="wrapper">
-            <button class="search-btn" aria-label="search" data-search-toggler>
-              <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
-              <span class="span">Search</span>
-            </button>
         {% else %}
+          <li class="navbar-item">
+            <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
+          </li>
           <li class="navbar-item">
             <a href="{% url 'login' %}" class="navbar-link hover:underline" data-nav-link>Login</a>
           </li>
@@ -137,19 +140,11 @@
         {% endif %}
       </ul>
     </nav>
-
-
-
       <button class="nav-toggle-btn" aria-label="toggle menu" data-nav-toggler>
         <span class="span one"></span>
         <span class="span two"></span>
         <span class="span three"></span>
       </button>
-
-      {% if user.is_authenticated %}
-        <a href="{% url 'profile' %}" class="btn">Dashboard</a>
-      {% else %}
-      {% endif %}
     </div>
   </div>
 </header>

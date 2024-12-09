@@ -3,6 +3,30 @@ from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.utils.text import slugify
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
+    def __str__(self):
+        return self.name
+
+
+
 STATUS = (
     (0, 'Draft'),
     (1, 'Published')
@@ -18,6 +42,11 @@ class Blog(models.Model):
     blog_image = models.ImageField(upload_to='blog_images/', null=True, blank=True)
     status = models.IntegerField(choices=STATUS, default=0)
     likes = models.ManyToManyField(User, related_name='liked_blogs', blank=True)
+    tags = models.ManyToManyField(Tag, related_name='blogs', blank=True)
+    featured = models.BooleanField(default=False) 
+    categories = models.ManyToManyField(Category, related_name='blogs', blank=True) 
+ 
+
 
     class Meta:
         verbose_name = "Blog"
@@ -38,7 +67,6 @@ class Blog(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse("blog_detail", kwargs={"slug": self.slug})
-
 
 
 class Comment(models.Model):

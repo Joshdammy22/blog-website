@@ -1,466 +1,242 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Welcome to Blogy{% endblock %}
+{% block title %}
+Home
+{% endblock title %}
 
 {% block contents %}
-  <style>
-    /* Hero Section */
-    .hero-section {
-      background: url(/static/images/hero.jpg) no-repeat center center/cover;
-      padding: 100px 0;
-      text-align: center;
-      position: relative;
-      height: 100vh;
-    }
-    
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      display: flex; /* Apply flexbox */
-      flex-direction: column; /* Stack items vertically */
-      justify-content: center; /* Vertically center */
-      align-items: center; /* Horizontally center */
-      height: 100%; /* Make sure it fills the full section height */
-    }
-    
-    .hero-title {
-      font-size: var(--fs-1);
-      font-weight: var(--fw-300);
-      margin-bottom: 20px;
-      color: var(--white);
-    }
-    
-    .hero-text {
-      font-size: var(--fs-6);
-      color: var(--white);
-      margin-bottom: 30px;
-    }
-    
-    .btn-primary1 {
-      background-color: var(--blue-ryb);
-      color: var(--white);
-      padding: 10px 20px;
-      border-radius: var(--radius-pill);
-      font-weight: var(--fw-500);
-      transition: var(--transition-1);
-      max-width: 250px; /* Adjust this value as needed */
-      width: auto; /* Make the width auto so that it adjusts based on content */
-      margin-top: 20px; /* Add margin for spacing if needed */
-    }
-    
-    
-    .btn-primary1:hover {
-      background-color: var(--eerie-black);
-    }
+<main>
+    <article>
+      <!-- HERO-->
+      <section class="section hero" aria-label="home">
+        <div class="container">
 
-    /* Optional: Add a darker overlay on the hero section for better text contrast */
-    .hero-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Dark overlay */
-      z-index: 1;
-    }
+          <h1 class="h1 hero-title">
+            <strong class="strong">Hey, we’re Blogy.</strong> See our thoughts, stories and ideas.
+          </h1>
 
+          <div class="wrapper">
+            {% if subscription_exists %}
 
-    /* About the Platform Section */
-    .about-section {
-      background-color: var(--cultured);
-      padding: 50px 0;
-      text-align: center;
-    }
-    
-    .section-title {
-      font-size: var(--fs-2);
-      font-weight: var(--fw-300);
-      margin-bottom: 20px;
-      color: var(--eerie-black);
-    }
-    
-    .section-description {
-      font-size: var(--fs-7);
-      color: var(--eerie-black_60);
-      margin-bottom: 40px;  /* Space between text and cards */
-    }
-    
-    /* Card Section */
-    .card-container {
-      display: flex;
-      justify-content: center; /* Center cards horizontally */
-      gap: 30px; /* Space between the cards */
-    }
-    
-    .card {
-      background-color: var(--white);
-      padding: 20px;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 250px; /* Set a fixed width for cards */
-    }
-    
-    .card-image {
-      width: 100%;
-      height: auto;
-      border-radius: var(--radius);
-    }
-    
-    .card-text {
-      font-size: var(--fs-6);
-      color: var(--eerie-black);
-      margin-top: 15px;
-    }
-    
+            {% else %}
+                <form method="post" class="newsletter-form">
+                    {% csrf_token %}
+                    {{ form.user_email }}
+                  <button type="submit" class="btn">Subscribe</button>
+                </form>
+            {% endif %}
 
+            <p class="newsletter-text">
+              Get the email newsletter and unlock access to members-only content and updates
+            </p>
 
-    /* Membership Section */
-    .membership-section {
-      background-color: var(--cultured);
-      padding: 60px 0;
-      text-align: center;
-    }
-    
-    .section-title {
-      font-size: var(--fs-2);
-      font-weight: var(--fw-300);
-      margin-bottom: 20px;
-      color: var(--eerie-black);
-    }
-    
-    .section-description {
-      font-size: var(--fs-6);
-      color: var(--eerie-black_60);
-      margin-bottom: 40px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    
-    /* Call to Action Buttons */
-    .cta-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 20px;  /* Space between buttons */
-    }
-    
-    .cta-buttons .btn {
-      padding: 15px 30px;  /* Larger padding for more prominent buttons */
-      font-size: var(--fs-6);
-      font-weight: var(--fw-500);
-      text-align: center;
-      border-radius: var(--radius-pill);
-      transition: var(--transition-1);
-      width: 200px;  /* Ensures buttons are the same size */
-    }
-    
-    /* Primary Button */
-    .btn-primary {
-      background-color: var(--blue-ryb);
-      color: var(--white);
-      padding: 10px 20px;
-      border-radius: var(--radius-pill);
-      font-weight: var(--fw-500);
-      transition: var(--transition-1);
-      max-width: 250px; /* Adjust this value as needed */
-      width: auto; /* Make the width auto so that it adjusts based on content */
-      margin-top: 20px; /* Add margin for spacing if needed */
-    }
-    .btn-primary:hover {
-      background-color: var(--eerie-black);
-    }
-    
-    /* Secondary Button */
-    .btn-secondary {
-      background-color: var(--eerie-black); /* Black background */
-      color: var(--white); /* White text */
-      padding: 10px 20px;
-      border-radius: var(--radius-pill);
-      font-weight: var(--fw-500);
-      transition: var(--transition-1);
-      max-width: 250px;
-      width: auto;
-      margin-top: 20px;
-    }
-    
-    .btn-secondary:hover {
-      background-color: var(--blue-ryb); /* Blue background on hover */
-      color: var(--white);
-    }
-    
-    
-    /* Features Section */
-    .features-section {
-      background-color: var(--cultured);
-      padding: 50px 0;
-      text-align: center;
-    }
-    
-    .features-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
-      gap: 30px;
-      justify-contents: center; /* Centers the grid items within the container */
-      margin-left: 250px;
-    }
-    
-    .feature-item {
-      background-color: var(--white);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      box-shadow: var(--box-shadow);
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center; /* Centers content inside each card */
-    }
-    
-    .feature-item .icon {
-      font-size: 40px;
-      color: var(--blue-ryb);
-      margin-bottom: 15px;
-    }
-    
-    .feature-title {
-      font-size: var(--fs-4);
-      font-weight: var(--fw-500);
-      color: var(--eerie-black);
-      margin-bottom: 10px;
-    }
-    
-    .feature-item p {
-      font-size: var(--fs-7);
-      color: var(--eerie-black_60);
-    }
-    
+          </div>
 
-    /* Call to Action Section */
-    .cta-section {
-      background-color: var(--blue-ryb);
-      color: var(--white);
-      padding: 50px 0;
-      text-align: center;
-    }
-
-    .cta-title {
-      font-size: var(--fs-2);
-      margin-bottom: 20px;
-      color: var(--white);
-    }
-
-    .cta-text {
-      font-size: var(--fs-6);
-      margin-bottom: 30px;
-      color: var(--white);
-    }
-
-
-
-    /* General Responsive Adjustments */
-    @media (max-width: 1024px) {
-      .hero-title {
-        font-size: var(--fs-1); /* Adjust font size for medium screens */
-        margin-top: 10px; /* Move text slightly down */
-      }
-    
-      .hero-text {
-        font-size: var(--fs-7); /* Adjust font size */
-      }
-    
-      .btn-primary1 {
-        padding: 8px 16px; /* Adjust padding for buttons */
-        font-size: var(--fs-8); /* Adjust font size */
-      }
-    }
-    @media (max-width: 768px) {
-      /* Stack cards vertically and center align */
-      .card-container {
-        display: flex; /* Flexbox layout */
-        flex-direction: column; /* Stack cards vertically */
-        align-items: center; /* Center align cards horizontally */
-        justify-content: center; /* Center align cards vertically (if needed) */
-        gap: 20px; /* Space between cards */
-        margin: 0 auto; /* Center the container itself */
-        text-align: center; /* Ensure content is centered */
-      }
-    
-      .card {
-        width: 100%; /* Full-width cards */
-        max-width: 300px; /* Prevent overly large cards */
-        margin: 0 auto; /* Center individual cards */
-      }
-      .features-list {
-        margin-left: 0; /* Remove left margin */
-        grid-template-columns: 1fr; /* Single column layout */
-      }
-    
-      .hero-title {
-        font-size: var(--fs-3); /* Adjust hero title font size */
-        margin-top: 20px; /* Move text further down */
-      }
-    
-      .hero-text {
-        font-size: var(--fs-8); /* Adjust hero text font size */
-        margin-bottom: 20px; /* Add spacing */
-      }
-    
-      .btn-primary1 {
-        margin-top: 10px; /* Add space below text */
-      }
-    
-      .cta-buttons {
-        flex-direction: column; /* Stack buttons vertically */
-        gap: 10px; /* Reduce spacing between buttons */
-        align-items: center; /* Center align buttons */
-      }
-    
-      .membership-section .btn {
-        display: block;
-        margin: 10px auto; /* Center membership buttons */
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .card-container {
-        padding: 10px; /* Add padding around container */
-        gap: 15px; /* Reduce spacing for smaller screens */
-      }
-    
-      .card {
-        padding: 15px; /* Adjust card padding */
-        margin: 10px auto; /* Center individual cards */
-      }
-      .hero-section {
-        padding: 50px 0; /* Reduce padding */
-        height: auto; /* Adjust height */
-      }
-    
-      .hero-title {
-        font-size: var(--fs-4); /* Adjust font size */
-        margin-top: 30px; /* Further move text down */
-      }
-    
-      .hero-text {
-        font-size: var(--fs-9); /* Adjust text size */
-        margin-bottom: 15px; /* Adjust spacing */
-      }
-    
-      .btn-primary1 {
-        padding: 8px 14px; /* Adjust button padding */
-        font-size: var(--fs-9); /* Adjust button text size */
-      }
-    
-      .card {
-        padding: 15px; /* Adjust card padding */
-        margin: 10px auto; /* Center cards */
-      }
-    
-      .membership-section .btn {
-        width: 100%; /* Full-width buttons */
-        margin: 15px auto; /* Center align buttons */
-      }
-    
-      .cta-buttons {
-        width: 100%; /* Full-width buttons */
-        text-align: center; /* Center align button text */
-      }
-    }
-    
-    
-  </style>
-
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="container">
-      <div class="hero-content">
-        <h1 class="hero-title">Welcome to Blogy</h1>
-        <p class="hero-text">Join a platform where stories, ideas, and thoughts come to life. Share your voice, read amazing articles, and become part of our community.</p>
-        <a href="#membership" class="btn btn-primary1">Get Started</a>
-      </div>
-    </div>
-  </section>
-
-<!-- About the Platform Section -->
-<section class="about-section" id="about">
-  <div class="container">
-    <h2 class="section-title">About Blogy</h2>
-    <p class="section-description">Blogy is a place where writers and readers come together to explore, share, and engage with content that matters. Whether you're an aspiring blogger or someone who loves to read, Blogy offers a platform for everyone.</p>
-    
-    <!-- Card Section -->
-    <div class="card-container">
-      <div class="card">
-        <img src="/static/images/voice.jpg" alt="Image 1" class="card-image">
-        <p class="card-text">Share your voice with the world through Blogy.</p>
-      </div>
-      <div class="card">
-        <img src="/static/images/enga.jpg" alt="Image 2" class="card-image">
-        <p class="card-text">Engage with articles and stories from all over.</p>
-      </div>
-      <div class="card">
-        <img src="/static/images/discover.jpg" alt="Image 3" class="card-image">
-        <p class="card-text">Discover new perspectives from fellow creators.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- Membership Section -->
-<section class="membership-section" id="membership">
-  <div class="container">
-    <h2 class="section-title">Membership</h2>
-    <p class="section-description">Become a member today to access exclusive content, connect with other creators, and contribute your own thoughts and ideas to the platform. Whether you're here to read, share, or engage, there's something for everyone.</p>
-    
-    <div class="cta-buttons">
-      <a href="{% url 'register' %}" class="btn btn-primary">Join Now </a>
-      <a href="{% url 'login' %}" class="btn btn-secondary">Login </a>
-    </div>
-  </div>
-</section>
-
-<!-- Features Section -->
-<section class="features-section">
-  <div class="container">
-    <h2 class="section-title">Why Choose Blogy?</h2>
-    <div class="features-list">
-      <div class="feature-item card">
-        <div class="icon">
-          <i class="fas fa-laptop"></i> <!-- Easy to Use Icon -->
         </div>
-        <h3 class="feature-title">Easy to Use</h3>
-        <p>Our platform is designed to be intuitive and user-friendly, making it easy to start sharing your thoughts in no time.</p>
-      </div>
-      <div class="feature-item card">
-        <div class="icon">
-          <i class="fas fa-users"></i> <!-- Connect with Others Icon -->
+      </section>
+
+
+
+      <!-- FEATURED POST -->
+      {% if featured_posts %}
+        <section class="section featured" aria-label="featured post">
+          <div class="container">
+            <p class="section-subtitle">
+              Get started with our <strong class="strong">best stories</strong>
+            </p>
+            <ul class="has-scrollbar">
+              {% for post in featured_posts %}
+                <li class="scrollbar-item">
+                  <div class="blog-card">
+                    <figure class="card-banner img-holder" style="--width: 500; --height: 600;">
+                      {% if post.image %}
+                        <img src="{{ post.image.url }}" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% else %}
+                        <img src="/path/to/default-image.jpg" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% endif %}
+                      <ul class="avatar-list absolute">
+                        {% for author in post.authors.all %}
+                          <li class="avatar-item">
+                            <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                              {% if author.profile_picture %}
+                                <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="{{ author.name }}" class="img-cover">
+                              {% else %}
+                                <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="{{ author.name }}" class="img-cover">
+                              {% endif %}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </figure>
+                    <div class="card-content">
+                      <ul class="card-meta-list">
+                        {% for tag in post.tags.all %}
+                          <li>
+                            <a href="#" class="card-tag">{{ tag.name }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                      <h3 class="h4">
+                        <a href="{% url 'post_detail' post.id %}" class="card-title hover:underline">
+                          {{ post.title }}
+                        </a>
+                      </h3>
+                      <p class="card-text">
+                        {{ post.excerpt }}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
+      {% else %}
+        <!-- Optionally handle the case where there are no featured posts -->
+      {% endif %}
+
+    
+
+      <!-- RECENT POST-->
+      {% if recent_posts %}
+      <section class="section recent" aria-label="recent post">
+        <div class="container">
+          <div class="title-wrapper">
+            <h2 class="h2 section-title">
+              See what we’ve <strong class="strong">written lately</strong>
+            </h2>
+            <div class="top-author">
+              <ul class="avatar-list">
+                {% if top_authors %}
+                    {% for author in top_authors %}
+                    <li class="avatar-item">
+                      <a href="#" class="avatar large img-holder" style="--width: 100; --height: 100;">
+                        {% if author.profile_picture %}
+                          <img src="{{ author.profile_picture.url }}" width="100" height="100" alt="top author" class="img-cover">
+                        {% else %}
+                          <img src="/path/to/default-avatar.jpg" width="100" height="100" alt="top author" class="img-cover">
+                        {% endif %}
+                      </a>
+                    </li>
+                  {% endfor %}
+                {% endif %}
+                
+              </ul>
+              <span class="span">Meet our top authors</span>
+            </div>
+          </div>
+          <ul class="grid-list">
+            {% for post in recent_posts %}
+              <li>
+                <div class="blog-card">
+                  <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
+                    {% if post.image %}
+                      <img src="{{ post.image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% else %}
+                      <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% endif %}
+                    <ul class="avatar-list absolute">
+                      {% for author in post.authors.all %}
+                        <li class="avatar-item">
+                          <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                            {% if author.profile_picture %}
+                              <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% else %}
+                              <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% endif %}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </figure>
+
+                  <div class="card-content">
+                    <ul class="card-meta-list">
+                      {% for tag in post.tags.all %}
+                        <li>
+                          <a href="#" class="card-tag">{{ tag.name }}</a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                    <h3 class="h4">
+                      <a href="#" class="card-title hover:underline">{{ post.title }}</a>
+                    </h3>
+                    <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
         </div>
-        <h3 class="feature-title">Connect with Others</h3>
-        <p>Engage with readers and fellow bloggers, discuss topics, and grow your network.</p>
-      </div>
-      <div class="feature-item card">
-        <div class="icon">
-          <i class="fas fa-bell"></i> <!-- Stay Updated Icon -->
+      </section>
+      {% else %}
+
+      
+      {% endif %}
+
+
+      <!-- RECOMMENDED POST-->
+      {% if recommended_posts %}
+      <section class="section recommended" aria-label="recommended post">
+        <div class="container">
+          <p class="section-subtitle">
+            <strong class="strong">Recommended</strong>
+          </p>
+          <ul class="grid-list">
+            {% for post in recommended_posts %}
+              <li>
+                <div class="blog-card">
+                  <figure class="card-banner img-holder" style="--width: 300; --height: 360;">
+                    {% if post.image %}
+                      <img src="{{ post.image.url }}" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% else %}
+                      <img src="/path/to/default-image.jpg" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% endif %}
+                    <ul class="avatar-list absolute">
+                      {% for author in post.authors.all %}
+                        <li class="avatar-item">
+                          <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                            {% if author.profile_picture %}
+                              <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% else %}
+                              <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% endif %}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </figure>
+                  <div class="card-content">
+                    <h3 class="h5">
+                      <a href="#" class="card-title hover:underline">{{ post.title }}</a>
+                    </h3>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
         </div>
-        <h3 class="feature-title">Stay Updated</h3>
-        <p>Get notifications for new posts, comments, and updates from your favorite authors.</p>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
+      {% endif %}
 
+      
+      <!-- - NEWS LETTER-->
+      {% if subscription_exists %}
 
-  <!-- Call to Action Section -->
-  <section class="cta-section">
-    <div class="container">
-      <h2 class="cta-title">Ready to Start Your Blogging Journey?</h2>
-      <p class="cta-text">Join Blogy now and begin writing, reading, and connecting with the world.</p>
-      <div class="cta-buttons">
-        <a href="{% url 'register' %}" class="btn btn-primary">Sign Up</a>
-        <a href="{% url 'login' %}" class="btn btn-secondary">Log In</a>
-      </div>
-    </div>
-  </section>
+      {% else %}
+      <section class="section newsletter">
+        <h2 class="h2 section-title">
+          Subscribe to <strong class="strong">new posts</strong>
+        </h2>
+        <form method="post" class="newsletter-form">
+          {% csrf_token %}
+          {{ form.user_email }}
+        <button type="submit" class="btn">Subscribe</button>
+      </form>
+      </section>
+      {% endif %}
+    </article>
+  </main>
+{% endblock  %}
 
-{% endblock %}
