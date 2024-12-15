@@ -8,6 +8,29 @@
 
 {% block contents %}
 <style>
+    .auth-links {
+        display: flex;
+        justify-content: center; /* Align links to the left */
+        gap: 1rem; /* Reduce the space between the links */
+        align-items: center; /* Vertically align links */
+        margin-top: 1rem; /* Optional top margin */
+    }
+    
+    .auth-links .register-link p {
+        margin: 0; /* Remove default paragraph margin */
+        font-size: 1rem; /* Increase the font size */
+    }
+    
+    .auth-links a {
+        font-size: 1rem; /* Ensure the links also have the same increased font size */
+        font-weight: bold; /* Optional: make the links stand out more */
+        text-decoration: none; /* Optional: remove underline for links */
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline; /* Add underline on hover for accessibility */
+    }
+    
     /* General container for social register section */
     .social-register {
         margin-top: 1rem;
@@ -279,20 +302,25 @@ h2 {
         <button type="submit" class="btn btn-primary login-btn">Login</button>
     </form>
     
-    <!-- Registration Link -->
-    <div class="register-link">
-        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+    <!-- Links Container -->
+    <div class="auth-links">
+        <div class="register-link">
+            <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+        </div>
+        <div class="register-link">
+            <p>Forgot password? <a href="#">Reset it here</a></p>
+        </div>
     </div>
 
-    <!-- Password reset Link -->
-    <div class="register-link">
-        <p>Forgot password? <a href="#">Reset it here</a></p>
-    </div>
     
     <!-- Social Login -->
     <div class="social-register mt-4">
         <h4>Or Log in with:</h4>
         <div class="social-buttons">
+            <!-- Google -->
+            <a href="{% provider_login_url 'google' %}" class="social-btn">
+                <img src="{% static 'images/google.png' %}" alt="Google" class="social-icon">
+            </a>
             <a href="{% provider_login_url 'facebook' %}" class="social-btn">
                 <img src="{% static 'images/fb.png' %}" alt="Facebook" class="social-icon">
             </a>

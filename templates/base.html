@@ -28,67 +28,147 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Flash message styling */
-  .flash-message {
-      display: none; /* Hidden by default, will be shown via JS */
-      position: fixed;
-      top: 60px; /* Adjust to place it below the navbar */
-      left: 35%;
-      transform: translateX(-50%);
-      background-color: #f8d7da; /* Light red background */
-      color: #721c24; /* Dark red text */
-      padding: 15px;
-      max-width: 400px;
-      border-radius: 5px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1050;
-      font-size: 16px;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-  }
+    /* Base Flash Message Styling (Gold Border) */
+.flash-message {
+    display: none; /* Hidden by default, will be shown via JS */
+    position: fixed;
+    top: 60px; /* Adjust to place it below the navbar */
+    left: 35%; /* Center horizontally */
+    transform: translateX(-50%);
+    max-width: 400px;
+    width: 90%; /* Makes it responsive on smaller screens */
+    z-index: 1050;
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+    align-items: center;
+    border-radius: 8px;
+    border: 2px solid #d4af37; /* Gold color border */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
+    background-color: #fffdf0; /* Slight off-white tint */
+}
 
-  .flash-message .flash-message-content {
-      display: flex;
-      align-items: center;
-  }
+/* Message Content */
+.flash-message .flash-message-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
 
-  .flash-message p {
-      margin: 0;
-      padding-right: 10px;
-  }
+.flash-message p {
+    margin: 0;
+    flex-grow: 1;
+    font-size: 16px; /* Ensures text remains readable */
+    text-align: left;
+}
 
-  .flash-message .close-btn {
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      color: #721c24;
-      cursor: pointer;
-      padding: 0;
-      font-weight: bold;
-  }
+/* Close Button Styling */
+.flash-message .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 10px;
+    color: inherit;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
 
-  .flash-message .close-btn:hover {
-      color: #c82333;
-  }
+.flash-message .close-btn:hover {
+    color: #333;
+    transform: scale(1.1);
+    opacity: 0.8;
+}
 
-  /* Animation for flash message */
-  .flash-message.fade-in {
-      animation: fadeIn 0.5s ease-in-out forwards;
-  }
+/* Message-Specific Styling */
+.flash-message-success {
+    background-color: #d4edda; /* Success */
+    color: #155724;
+    border-color: #28a745;
+    padding: 7px;
+}
 
-  @keyframes fadeIn {
-      from {
-          opacity: 0;
-          transform: translateY(-20px);
-      }
-      to {
-          opacity: 1;
-          transform: translateY(0);
-      }
-  }
+.flash-message-error {
+    background-color: #f8d7da; /* Error */
+    color: #721c24;
+    border-color: #dc3545;
+    padding: 7px;
+}
 
+.flash-message-warning {
+    background-color: #fff3cd; /* Warning */
+    color: #856404;
+    border-color: #ffc107;
+    padding: 7px;
+}
+
+.flash-message-info {
+    background-color: #d1ecf1; /* Info */
+    color: #0c5460;
+    border-color: #17a2b8;
+    padding: 7px;
+}
+
+/* Fade-in Animation */
+.flash-message.fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .flash-message {
+        top: 50px; /* Adjust the position for smaller screens */
+        max-width: 90%; /* Use most of the screen width */
+        width: 90%;
+        border-radius: 6px; /* Slightly smaller rounded corners */
+        font-size: 14px;
+    }
+
+    .flash-message .flash-message-content {
+        padding: 8px 10px;
+    }
+
+    .flash-message p {
+        font-size: 14px;
+    }
+
+    .flash-message .close-btn {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .flash-message {
+        top: 40px; /* Adjust position further for very small screens */
+        max-width: 95%;
+        width: 95%;
+        font-size: 13px;
+        border-radius: 4px;
+    }
+
+    .flash-message .flash-message-content {
+        padding: 6px 8px;
+    }
+
+    .flash-message p {
+        font-size: 13px;
+    }
+
+    .flash-message .close-btn {
+        font-size: 14px;
+    }
+}    
   </style>
 </head>
 
@@ -112,17 +192,14 @@
             <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
+            <a href="{% url 'blogs' %}" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
           </li>
-          {% comment %} <li class="navbar-item">
-            <a href="#" class="navbar-link hover:underline" data-nav-link>Membership</a>
-          </li> {% endcomment %}
+          <li class="navbar-item">
+            <a href="#" class="btn" data-nav-link>Membership</a>
+          </li>
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
-          {% comment %} <li class="navbar-item">
-            <a href="{% url 'register' %}" class="btn" data-nav-link>Join</a>
-          </li> {% endcomment %}
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
           </li>
@@ -163,18 +240,18 @@
 
   <div class="overlay" data-overlay data-search-toggler></div>
 
-
-  <!-- Flash messages -->
-  {% if messages %}
-  <div id="flash-message" class="flash-message">
+<!-- Flash messages -->
+{% if messages %}
+  <div id="flash-message" class="flash-message fade-in">
       <div class="flash-message-content">
           {% for message in messages %}
-              <p>{{ message }}</p>
+              <p class="flash-message-{{ message.tags }}">{{ message }}</p>
           {% endfor %}
           <button id="close-btn" class="close-btn">X</button>
       </div>
   </div>
-  {% endif %}
+{% endif %}
+
 
 
   <!-- Content Block -->
@@ -240,7 +317,7 @@
 
       <div class="section footer-bottom">
         <p class="copyright">
-          &copy; Blogy 2022. Published by <a href="#" class="copyright-link hover:underline">codewithsadee</a>.
+          &copy; Blogy 2024. Published by <a href="#" class="copyright-link hover:underline">codewithsadee</a>.
         </p>
       </div>
 

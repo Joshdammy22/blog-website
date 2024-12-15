@@ -12,18 +12,31 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.conf import settings
 import requests
+from http.client import RemoteDisconnected
 
 # User Registration View
 def register(request):
     """
     Handles user registration and sends an email verification link.
+    Redirects authenticated users to the home page.
     """
+    # Check if the user is already authenticated
+    if request.user.is_authenticated:
+        messages.info(request, 'You are already registered and logged in. Redirecting to home...')
+        return redirect('home')  # Redirect to home if the user is already authenticated
+    
     print("Accessing register view...") 
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False  # User remains inactive until email verification
+            user.save()
+
+            # Create user profile
             Profile.objects.create(user=user)
+
+            # Send the verification email
             send_verification_email(request, user)
 
             print(f"Verification email sent to {user.email}.") 
@@ -38,6 +51,7 @@ def register(request):
     print("Passing form to template.") 
     return render(request, 'users/register.html', {'form': form})
 
+
 def email_verification(request, token):
     """
     Verifies a user's email using the token provided in the verification email.
@@ -46,6 +60,7 @@ def email_verification(request, token):
         profile = get_object_or_404(Profile, verification_token=token)
         profile.user.is_active = True  # Activate the user
         profile.user.save()
+        profile.email_verified = True  # Mark the email as verified
         profile.verification_token = ""  # Clear the token once used
         profile.save()
         messages.success(request, 'Your email has been verified successfully. You can now log in.')
@@ -55,42 +70,72 @@ def email_verification(request, token):
         messages.error(request, 'Invalid or expired verification token. Please try again.')
         return redirect('register')
 
-# User Login View
 def login_view(request):
+    """
+    Handles user login, prevents an unverified user or an already authenticated user from logging in.
+    """
+    # Check if the user is already authenticated
+    if request.user.is_authenticated:
+        messages.info(request, 'You are already registered and logged in. Redirecting to home...')
+        return redirect('home')  # Redirect to home if the user is already authenticated
+    
+    print("Accessing login view...") 
     form = UserLoginForm(data=request.POST or None)
 
     if request.method == "POST":
-        if form.is_valid():  # Validates all fields, including the reCAPTCHA
-            username_or_email = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
+        try:
+            if form.is_valid():  # Validates all fields, including the reCAPTCHA
+                username_or_email = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password')
 
-            try:
-                # Find user by username or email
-                user_obj = User.objects.get(
-                    Q(username=username_or_email) | Q(email=username_or_email)
-                )
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
+                try:
+                    # Find user by username or email
+                    user_obj = User.objects.get(
+                        Q(username=username_or_email) | Q(email=username_or_email)
+                    )
+                    # Check if the user is inactive (not verified)
+                    if not user_obj.is_active:
+                        messages.error(request, 'Your account is inactive. Please verify your email to log in.')
+                        return redirect('login')
 
-            if user:
-                if not user.is_active:
-                    messages.error(request, 'Your account is inactive. Please verify your email.')
-                    return redirect('login')
+                    # Authenticate the user
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
 
-                # Log in the user
-                login(request, user)
-                messages.success(request, 'You have successfully logged in!')
-                return redirect('home')  # Redirect to a home/dashboard page
+                if user:
+                    # Log in the user
+                    login(request, user)
+                    messages.success(request, 'You have successfully logged in!')
+                    return redirect('home')  # Redirect to a home/dashboard page
+                else:
+                    messages.error(request, 'Invalid credentials. Please try again.')
             else:
-                messages.error(request, 'Invalid credentials. Please try again.')
-        else:
-            # Handle invalid form submission
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, error)
+                # Handle invalid form submission
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, error)
+
+        except RemoteDisconnected:
+            # Handle RemoteDisconnected exception gracefully
+            print("RemoteDisconnected error occurred during login.")
+            messages.error(
+                request,
+                "There was a connection issue while processing your request. Please try again."
+            )
+            return redirect('login')  # Redirect to the login page
+
+        except Exception as e:
+            # Catch any other unexpected exceptions
+            print(f"Unexpected error: {e}")
+            messages.error(
+                request,
+                "An unexpected error occurred. Please try again or contact support."
+            )
+            return redirect('login')  # Redirect to the login page
 
     return render(request, 'users/login.html', {'form': form})
+
 
 
 def verify_otp(request):
@@ -166,35 +211,98 @@ def logout_view(request):
     return redirect('home')  
 
 
-# User Profile View
 @login_required
 def profile_view(request):
     """
-    Displays and updates the user's profile and account details.
+    Displays the user's profile and account details. Checks if the profile exists, 
+    and creates one if it doesn't. Ensures that the user's email is verified.
     """
-    print(f"Accessing profile view for user {request.user.username}.") 
-    if request.method == 'POST':
-        u_form = UserUpdateForm(request.POST, instance=request.user)
-        p_form = ProfileUpdateForm(
-            request.POST, request.FILES, instance=request.user.profile
-        )
-        if u_form.is_valid() and p_form.is_valid():
-            u_form.save()
-            p_form.save()
-            print(f"Profile updated for user {request.user.username}.") 
-            messages.success(request, 'Your profile has been updated.')
-            return redirect('profile')
-        else:
-            print("Profile update form is invalid.") 
+    print(f"Accessing profile view for user {request.user.username}.")
+    
+     # Check if the user's email is verified
+    if not request.user.profile.email_verified:
+        messages.warning(request, 'Your email is not verified. Please verify your email to access your profile!')
+        return redirect('email_verification_request')  # Redirect to the email verification request page
+    
+    # Check if the profile exists, if not, create it
+    if not hasattr(request.user, 'profile'):
+        # Create the profile if it doesn't exist
+        profile = Profile.objects.create(user=request.user)
+        print(f"Created profile for user {request.user.username}.")
     else:
-        u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm(instance=request.user.profile)
+        profile = request.user.profile
+
+    # Print user's profile details for debugging
+    print(f"User profile details: {profile}")
 
     context = {
-        'u_form': u_form,
-        'p_form': p_form,
+        'profile': profile,
     }
+
     return render(request, 'users/profile.html', context)
+
+
+def email_verification_request(request):
+    """
+    Handles the process of re-sending the verification email if the user's email is not verified.
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        # Check if the email exists in the system
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, "No account found with this email address.")
+            return redirect('email_verification_request')
+
+        # Ensure the user is registered but not verified
+        if not user.profile.email_verified:
+            # Generate a new verification token and send the verification email
+            token = user.profile.generate_verification_token()
+            send_verification_email(request, user)
+            messages.success(request, 'A new verification email has been sent to your email address.')
+        else:
+            messages.info(request, 'Your email is already verified.')
+        
+        return redirect('profile')
+
+    return render(request, 'users/email_verification_request.html')
+
+
+@login_required
+def edit_profile(request):
+    """
+    Allows the user to edit their profile information.
+    """
+    profile = get_object_or_404(Profile, user=request.user)
+
+    # Debugging print statement for when the profile is fetched
+    print(f"Accessing edit profile for user {request.user.username}. Profile: {profile}")
+
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+        
+        # Print form data for debugging
+        print(f"Form data: {request.POST}")
+        print(f"Form files: {request.FILES}")
+        
+        if form.is_valid():
+            form.save()
+            # Print success message for debugging
+            print(f"Profile updated for user {request.user.username}.")
+            return redirect('profile')  # Redirect to the profile page after saving
+        else:
+            # Print form validation errors
+            print(f"Form is invalid. Errors: {form.errors}")
+    else:
+        form = ProfileUpdateForm(instance=profile)
+
+    # Print the form instance for debugging
+    print(f"Rendering form for user {request.user.username}. Form instance: {form}")
+
+    return render(request, 'users/edit_profile.html', {'form': form})
+
 
 
 # User Settings View

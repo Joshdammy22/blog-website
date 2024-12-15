@@ -12,6 +12,7 @@ urlpatterns = [
 
     # User Registration
     path('register/', views.register, name='register'),
+    path('email-verification-request/', views.email_verification_request, name='email_verification_request'),
     path('verify-email/<str:token>/', views.email_verification, name='email_verification'),
 
 
@@ -38,3 +39,4 @@ urlpatterns = [
     # Resend OTP
     path('resend-otp/', views.resend_otp, name='resend_otp'),
 ]
+

@@ -1,14 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ blog.title }}</title>
-</head>
-<body>
-    <h1>{{ blog.title }}</h1>
-    <p>Published on: {{ blog.published_date }}</p>
-    <p>{{ blog.content }}</p>
-    <a href="{% url 'blog_list' %}">Back to Blog List</a>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section blog-detail" aria-label="blog detail">
+  <div class="container">
+    <article class="blog-post">
+      <header class="post-header">
+        <h1 class="h1">{{ blog.title }}</h1>
+        <p class="post-meta">
+          Published on {{ blog.created_at|date:"F d, Y" }} by 
+          {% for author in blog.authors.all %}
+            <a href="#" class="author">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      </header>
+      <figure class="post-banner">
+        {% if blog.image %}
+          <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-cover">
+        {% else %}
+          <img src="/path/to/default-image.jpg" alt="{{ blog.title }}" class="img-cover">
+        {% endif %}
+      </figure>
+      <div class="post-content">
+        {{ blog.content|safe }}
+      </div>
+    </article>
+
+    <section class="comments-section">
+      <h2 class="h2">Comments</h2>
+      <ul class="comments-list">
+        {% for comment in blog.comments.all %}
+          <li class="comment">
+            <p><strong>{{ comment.author_name }}</strong> on {{ comment.created_at|date:"F d, Y H:i" }}</p>
+            <p>{{ comment.body }}</p>
+          </li>
+        {% empty %}
+          <li>No comments yet. Be the first to comment!</li>
+        {% endfor %}
+      </ul>
+      <form method="post">
+        {% csrf_token %}
+        <textarea name="comment_body" rows="5" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn">Post Comment</button>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -16,6 +16,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True, null=True, help_text="Write a short bio about yourself.")
+    email_verified = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='authors/', null=True, blank=True)
     phone_number = models.CharField(
         max_length=15,
@@ -47,6 +48,10 @@ class UserActivity(models.Model):
     last_login_time = models.DateTimeField(null=True, blank=True)
     last_activity_time = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = "UserActivity"
+        verbose_name_plural = "UserActivities"
+
     def __str__(self):
         return f"Activity for {self.user.username}"
 
@@ -66,6 +71,10 @@ class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
     email_notifications = models.BooleanField(default=True, help_text="Enable or disable email notifications.")
     dark_mode = models.BooleanField(default=False, help_text="Enable or disable dark mode for the app.")
+
+    class Meta:
+        verbose_name = "UserSetting"
+        verbose_name_plural = "UserSettings"
 
     def __str__(self):
         return f"Settings for {self.user.username}"

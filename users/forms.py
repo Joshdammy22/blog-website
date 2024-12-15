@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from .models import Profile
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Checkbox
+from allauth.socialaccount.models import SocialAccount
 
 
 class UserRegisterForm(UserCreationForm):
@@ -31,8 +32,6 @@ class UserRegisterForm(UserCreationForm):
         return username
 
 
-
-
 class UserLoginForm(AuthenticationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={
@@ -53,6 +52,31 @@ class UserLoginForm(AuthenticationForm):
         }
     )
     captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox())
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        
+        # Check if the user exists in the database
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = None
+        
+        # Skip reCAPTCHA validation only for social login users
+        if user:
+            social_login_attempt = SocialAccount.objects.filter(user=user).exists()
+        else:
+            social_login_attempt = False
+
+        # Perform reCAPTCHA validation only for non-social logins
+        if not social_login_attempt:
+            if not cleaned_data.get('captcha'):
+                self.add_error('captcha', 'Please complete the reCAPTCHA verification.')
+
+        return cleaned_data
+
+
 
 
 class ProfileUpdateForm(forms.ModelForm):

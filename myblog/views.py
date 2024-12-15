@@ -7,9 +7,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import uuid
 from django.core.mail import send_mail
+
+
+
 def home(request):
     print("Accessing home view...")  
-
     # Check if the user is authenticated
     if request.user.is_authenticated:
         print(f"User: '{request.user.username}' is authenticated, redirecting to the Home page.")  
@@ -21,7 +23,7 @@ def home(request):
         top_authors = Profile.objects.all()[:2]
 
         # Fetch the latest 6 posts ordered by 'created_at' (assuming 'created_at' is the field to order by)
-        posts = Blog.objects.all().order_by('-created_at')[:6]  # Change from 'date_posted' to 'created_at'
+        recent_posts = Blog.objects.all().order_by('-created_at')[:6]  # Change from 'date_posted' to 'created_at'
 
         # Fetch a random or relevant list of recommended posts, filtering by categories, and excluding post with id=1 for demonstration
         recommended_posts = Blog.objects.filter(categories__name__in=['Tech', 'Business']).exclude(id=1)[:5]  # Correct filter on 'categories'
@@ -61,7 +63,7 @@ def home(request):
             'subscription_exists': subscription_exists,
             'featured_posts': featured_posts,
             'top_authors': top_authors,
-            'recent_posts': posts,
+            'recent_posts': recent_posts,
             'recommended_posts': recommended_posts,
         })
     else:

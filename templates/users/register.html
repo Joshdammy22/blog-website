@@ -321,6 +321,10 @@
     <div class="social-register mt-4">
         <h4>Or register with:</h4>
         <div class="social-buttons">
+            <!-- Google -->
+            <a href="{% provider_login_url 'google' %}" class="social-btn">
+                <img src="{% static 'images/google.png' %}" alt="Google" class="social-icon">
+            </a>
             <!-- Facebook -->
             <a href="{% provider_login_url 'facebook' %}" class="social-btn">
                 <img src="{% static 'images/fb.png' %}" alt="Facebook" class="social-icon">

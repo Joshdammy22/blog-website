@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section email-verification">
+  <div class="container">
+    <h2 class="h2 section-title">Email Verification Required</h2>
+    <p class="section-subtitle">It seems you have logged in, but your email has not yet been verified. Please verify your email to complete the registration process.</p>
+    
+    <form method="POST" class="verification-form">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="email">Enter your email to receive a verification link:</label>
+        <input type="email" name="email" value="{{ user.email }}" readonly required class="input-field">
+      </div>
+      
+      <button type="submit" class="btn">Send Verification Email</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

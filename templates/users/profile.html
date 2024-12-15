@@ -1,15 +1,41 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %} Profile {% endblock title %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Profile</h2>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <h4>Update User Info</h4>
-        {{ u_form.as_p }}
-        <h4>Update Profile Info</h4>
-        {{ p_form.as_p }}
-        <button type="submit" class="btn btn-primary">Update Profile</button>
-    </form>
-</div>
+<section class="section profile">
+    <div class="container">
+      <div class="profile-header">
+        <div class="profile-picture">
+          {% if user.profile.profile_picture %}
+          <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}'s Profile Picture" class="img-cover">
+          {% else %}
+          <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" class="img-cover">
+          {% endif %}
+        </div>
+        <div class="profile-info">
+          <h1 class="h2">{{ user.profile.first_name }} {{ user.profile.last_name }}</h1>
+          <p class="bio">{{ user.profile.bio|default:"This user has not added a bio yet." }}</p>
+          <ul class="profile-details">
+            <li><strong>Username:</strong> {{ user.username }}</li>
+            <li><strong>Email:</strong> {{ user.email }}</li>
+            {% if user.profile.phone_number %}
+            <li><strong>Phone:</strong> {{ user.profile.phone_number }}</li>
+            {% endif %}
+            {% if user.profile.website %}
+            <li><strong>Website:</strong> <a href="{{ user.profile.website }}" target="_blank">{{ user.profile.website }}</a></li>
+            {% endif %}
+            {% if user.profile.location %}
+            <li><strong>Location:</strong> {{ user.profile.location }}</li>
+            {% endif %}
+            {% if user.profile.birth_date %}
+            <li><strong>Date of Birth:</strong> {{ user.profile.birth_date }}</li>
+            {% endif %}
+          </ul>
+          <a href="{% url 'edit_profile' %}" class="btn">Edit Profile</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
 {% endblock %}

@@ -25,15 +25,12 @@ Home
                     {{ form.user_email }}
                   <button type="submit" class="btn">Subscribe</button>
                 </form>
+
+                <p class="newsletter-text">
+                  Get the email newsletter and unlock access to members-only content and updates
+                </p>
             {% endif %}
-
-            <p class="newsletter-text">
-              Get the email newsletter and unlock access to members-only content and updates
-            </p>
-
           </div>
-
-        </div>
       </section>
 
 
@@ -100,79 +97,78 @@ Home
 
       <!-- RECENT POST-->
       {% if recent_posts %}
-      <section class="section recent" aria-label="recent post">
-        <div class="container">
-          <div class="title-wrapper">
-            <h2 class="h2 section-title">
-              See what we’ve <strong class="strong">written lately</strong>
-            </h2>
-            <div class="top-author">
-              <ul class="avatar-list">
-                {% if top_authors %}
-                    {% for author in top_authors %}
-                    <li class="avatar-item">
-                      <a href="#" class="avatar large img-holder" style="--width: 100; --height: 100;">
-                        {% if author.profile_picture %}
-                          <img src="{{ author.profile_picture.url }}" width="100" height="100" alt="top author" class="img-cover">
-                        {% else %}
-                          <img src="/path/to/default-avatar.jpg" width="100" height="100" alt="top author" class="img-cover">
-                        {% endif %}
-                      </a>
-                    </li>
-                  {% endfor %}
-                {% endif %}
-                
-              </ul>
-              <span class="span">Meet our top authors</span>
+        <section class="section recent" aria-label="recent post">
+          <div class="container">
+            <div class="title-wrapper">
+              <h2 class="h2 section-title">
+                See what we’ve <strong class="strong">written lately</strong>
+              </h2>
+              <div class="top-author">
+                <ul class="avatar-list">
+                  {% if top_authors %}
+                      {% for author in top_authors %}
+                      <li class="avatar-item">
+                        <a href="#" class="avatar large img-holder" style="--width: 100; --height: 100;">
+                          {% if author.profile_picture %}
+                            <img src="{{ author.profile_picture.url }}" width="100" height="100" alt="top author" class="img-cover">
+                          {% else %}
+                            <img src="/path/to/default-avatar.jpg" width="100" height="100" alt="top author" class="img-cover">
+                          {% endif %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  {% endif %}
+                  
+                </ul>
+                <span class="span">Meet our top authors</span>
+              </div>
             </div>
-          </div>
-          <ul class="grid-list">
-            {% for post in recent_posts %}
-              <li>
-                <div class="blog-card">
-                  <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
-                    {% if post.image %}
-                      <img src="{{ post.image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
-                    {% else %}
-                      <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
-                    {% endif %}
-                    <ul class="avatar-list absolute">
-                      {% for author in post.authors.all %}
-                        <li class="avatar-item">
-                          <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
-                            {% if author.profile_picture %}
-                              <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
-                            {% else %}
-                              <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
-                            {% endif %}
-                          </a>
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </figure>
+            <ul class="grid-list">
+              {% for post in recent_posts %}
+                <li>
+                  <div class="blog-card">
+                    <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
+                      {% if post.image %}
+                        <img src="{{ post.image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% else %}
+                        <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% endif %}
+                      <ul class="avatar-list absolute">
+                        {% for author in post.authors.all %}
+                          <li class="avatar-item">
+                            <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                              {% if author.profile_picture %}
+                                <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                              {% else %}
+                                <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                              {% endif %}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </figure>
 
-                  <div class="card-content">
-                    <ul class="card-meta-list">
-                      {% for tag in post.tags.all %}
-                        <li>
-                          <a href="#" class="card-tag">{{ tag.name }}</a>
-                        </li>
-                      {% endfor %}
-                    </ul>
-                    <h3 class="h4">
-                      <a href="#" class="card-title hover:underline">{{ post.title }}</a>
-                    </h3>
-                    <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                    <div class="card-content">
+                      <ul class="card-meta-list">
+                        {% for tag in post.tags.all %}
+                          <li>
+                            <a href="#" class="card-tag">{{ tag.name }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                      <h3 class="h4">
+                        <a href="#" class="card-title hover:underline">{{ post.title }}</a>
+                      </h3>
+                      <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                    </div>
                   </div>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </section>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
       {% else %}
 
-      
       {% endif %}
 
 
@@ -218,6 +214,8 @@ Home
           </ul>
         </div>
       </section>
+      {% else %}
+
       {% endif %}
 
       

@@ -3,7 +3,8 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
-from .models import Profile
+from .models import *
+from django.core.exceptions import ValidationError
 
 
 def generate_verification_token():
@@ -22,11 +23,14 @@ def send_verification_email(request, user):
     profile.verification_token = token
     profile.save()
 
+    # Generate verification link
     current_site = get_current_site(request)
     verification_url = request.build_absolute_uri(
         reverse('email_verification', args=[token])
     )
-    subject = "Verify your email address"
+    
+    # Email subject and message
+    subject = f"Verify your email address - {settings.APP_NAME}"
     message = f"""
     Hi {user.username},
 
@@ -35,7 +39,10 @@ def send_verification_email(request, user):
     {verification_url}
 
     Thank you!
+    {settings.APP_NAME}
     """
+    
+    # Send email
     send_mail(
         subject,
         message,

@@ -2,6 +2,9 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import *
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
 
 # View to create a blog post
 def create_blog(request):
@@ -30,8 +33,12 @@ def get_absolute_url(self):
 # View to list all published blog posts
 def blog_list(request):
     blogs = Blog.objects.filter(status=1)  # Only show published blogs
-    return render(request, 'blog/blog_list.html', {'blogs': blogs})
+    paginator = Paginator(blogs, 5)  # Show 5 blogs per page
 
+    page_number = request.GET.get('page')  # Get the current page number from query parameters
+    page_obj = paginator.get_page(page_number)  # Get the page object for the current page
+
+    return render(request, 'blog/blogs.html', {'page_obj': page_obj})
 
 # View to see the details of a specific blog post by its slug
 def blog_detail(request, slug):
