@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 
-{% block content %}
+
+{% block title %}
+Blogs
+{% endblock title %}
+
+
+{% block contents %}
 <section class="section blogs" aria-label="all blogs">
   <div class="container">
-    <h1 class="h1 section-title">Our Blog</h1>
+    <h1 class="h1 section-title">Our Blogs</h1>
     <ul class="grid-list">
       {% for post in blogs %}
         <li>
           <div class="blog-card">
             <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
-              {% if post.image %}
-                <img src="{{ post.image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+              {% if post.blog_image %}
+                <img src="{{ post.blog_image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
               {% else %}
                 <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
               {% endif %}
@@ -24,7 +30,7 @@
                 {% endfor %}
               </ul>
               <h3 class="h4">
-                <a href="{% url 'blog_detail' post.id %}" class="card-title hover:underline">{{ post.title }}</a>
+                <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">{{ post.title }}</a>
               </h3>
               <p class="card-text">{{ post.excerpt }}</p>
             </div>

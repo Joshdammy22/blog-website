@@ -213,26 +213,23 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    """
-    Displays the user's profile and account details. Checks if the profile exists, 
-    and creates one if it doesn't. Ensures that the user's email is verified.
-    """
     print(f"Accessing profile view for user {request.user.username}.")
     
-     # Check if the user's email is verified
-    if not request.user.profile.email_verified:
-        messages.warning(request, 'Your email is not verified. Please verify your email to access your profile!')
+    # Check if the user's email is verified
+    if not hasattr(request.user, 'profile') or not request.user.profile.email_verified:
+        if not hasattr(request.user, 'profile'):
+            print(f"User {request.user.username} has no profile. Creating one.")
+            # Create the profile if it doesn't exist
+            profile = Profile.objects.create(user=request.user)
+            print(f"Created profile for user {request.user.username}.")
+        else:
+            print(f"User {request.user.username} has an unverified email.")
+        
+        messages.warning(request, 'Your email is not verified or profile does not exist. Please verify your email or create your profile!')
         return redirect('email_verification_request')  # Redirect to the email verification request page
     
-    # Check if the profile exists, if not, create it
-    if not hasattr(request.user, 'profile'):
-        # Create the profile if it doesn't exist
-        profile = Profile.objects.create(user=request.user)
-        print(f"Created profile for user {request.user.username}.")
-    else:
-        profile = request.user.profile
-
-    # Print user's profile details for debugging
+    # If the profile exists, retrieve it
+    profile = request.user.profile
     print(f"User profile details: {profile}")
 
     context = {
@@ -240,6 +237,7 @@ def profile_view(request):
     }
 
     return render(request, 'users/profile.html', context)
+
 
 
 def email_verification_request(request):

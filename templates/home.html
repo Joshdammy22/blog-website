@@ -47,8 +47,8 @@ Home
                 <li class="scrollbar-item">
                   <div class="blog-card">
                     <figure class="card-banner img-holder" style="--width: 500; --height: 600;">
-                      {% if post.image %}
-                        <img src="{{ post.image.url }}" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% if post.blog_image %}
+                        <img src="{{ post.blog_image.url }}" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
                       {% else %}
                         <img src="/path/to/default-image.jpg" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
                       {% endif %}
@@ -75,7 +75,7 @@ Home
                         {% endfor %}
                       </ul>
                       <h3 class="h4">
-                        <a href="{% url 'post_detail' post.id %}" class="card-title hover:underline">
+                        <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">
                           {{ post.title }}
                         </a>
                       </h3>
@@ -128,8 +128,8 @@ Home
                 <li>
                   <div class="blog-card">
                     <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
-                      {% if post.image %}
-                        <img src="{{ post.image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% if post.blog_image %}
+                        <img src="{{ post.blog_image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
                       {% else %}
                         <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
                       {% endif %}
@@ -184,8 +184,8 @@ Home
               <li>
                 <div class="blog-card">
                   <figure class="card-banner img-holder" style="--width: 300; --height: 360;">
-                    {% if post.image %}
-                      <img src="{{ post.image.url }}" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% if post.blog_image %}
+                      <img src="{{ post.blog_image.url }}" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
                     {% else %}
                       <img src="/path/to/default-image.jpg" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
                     {% endif %}

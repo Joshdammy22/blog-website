@@ -1,21 +1,66 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<section class="section email-verification">
+{% block title %}Verify Your Email{% endblock title %}
+
+
+{% block contents %}
+<style>
+  /* Custom Styles for Email Verification Page */
+.section-title {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.section-subtitle {
+  color: #7f8c8d;
+}
+
+.verification-form .form-group {
+  margin-bottom: 20px;
+}
+
+.verification-form .form-label {
+  font-size: 1.1rem;
+  color: #34495e;
+}
+
+.verification-form .input-field {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+}
+
+</style>
+<section class="section email-verification py-5">
   <div class="container">
-    <h2 class="h2 section-title">Email Verification Required</h2>
-    <p class="section-subtitle">It seems you have logged in, but your email has not yet been verified. Please verify your email to complete the registration process.</p>
-    
-    <form method="POST" class="verification-form">
-      {% csrf_token %}
-      
-      <div class="form-group">
-        <label for="email">Enter your email to receive a verification link:</label>
-        <input type="email" name="email" value="{{ user.email }}" readonly required class="input-field">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+          <div class="card-body p-5">
+            <h2 class="h2 section-title text-center mb-4">Email Verification Required</h2>
+            <p class="section-subtitle text-center mb-4">It seems you have logged in, but your email has not yet been verified. Please verify your email to complete the registration process.</p>
+
+            <form method="POST" class="verification-form">
+              {% csrf_token %}
+              
+              <div class="form-group mb-4">
+                <label for="email" class="form-label">Enter your email to receive a verification link:</label>
+                <input type="email" name="email" value="{{ user.email }}" readonly required class="form-control" disabled>
+              </div>
+              
+              <button type="submit" class="btn btn-primary w-100">Send Verification Email</button>
+            </form>
+          </div>
+        </div>
       </div>
-      
-      <button type="submit" class="btn">Send Verification Email</button>
-    </form>
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -2,9 +2,11 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import *
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.core.paginator import Paginator
-
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # View to create a blog post
 def create_blog(request):
@@ -24,12 +26,6 @@ def create_blog(request):
         # Redirect to the blog detail page using the slug
         return redirect('blog_detail', slug=blog.slug)
 
-from django.urls import reverse
-
-def get_absolute_url(self):
-    return reverse("blog_detail", kwargs={"slug": self.slug})
-
-
 # View to list all published blog posts
 def blog_list(request):
     blogs = Blog.objects.filter(status=1)  # Only show published blogs
@@ -38,29 +34,111 @@ def blog_list(request):
     page_number = request.GET.get('page')  # Get the current page number from query parameters
     page_obj = paginator.get_page(page_number)  # Get the page object for the current page
 
-    return render(request, 'blog/blogs.html', {'page_obj': page_obj})
+    return render(request, 'blog/blogs.html', {'page_obj': page_obj, 'blogs':blogs})
 
-# View to see the details of a specific blog post by its slug
 def blog_detail(request, slug):
     blog = get_object_or_404(Blog, slug=slug)
-    return render(request, 'blog/blog_detail.html', {'blog': blog})
+
+    if request.method == 'POST':
+        comment_body = request.POST.get('comment_body')
+        if comment_body:
+            Comment.objects.create(
+                blog=blog,
+                author=request.user,
+                content=comment_body,
+            )
+            return HttpResponseRedirect(request.path_info)  # Redirect to the same page
+
+    # Debugging statements for blog object
+    print(f"Blog ID: {blog.id}")
+    print(f"Blog Title: {blog.title}")
+    print(f"Blog Author: {blog.author.username}")
+    print(f"Blog Image: {blog.blog_image}")
+    print(f"Blog Status: {blog.status}")
+    print(f"Reactions Count: {blog.reactions.count()}")
+    print(f"Reactions Summary: {blog.get_reaction_summary()}")
+
+    # Precompute reactions
+    reactions_summary = {reaction_type: blog.get_reaction_count(reaction_type) for reaction_type, _ in REACTION_CHOICES}
+
+    return render(request, 'blog/blog_detail.html', {'blog': blog, 'reactions_summary':reactions_summary})
+
+def react_to_blog(request, slug):
+    if request.method == 'POST':
+        blog = get_object_or_404(Blog, slug=slug)
+        data = json.loads(request.body)
+        reaction_type = data.get('reaction_type')
+
+        if reaction_type not in dict(REACTION_CHOICES):
+            return JsonResponse({'error': 'Invalid reaction type'}, status=400)
+
+        # Update or create reaction
+        reaction, created = Reaction.objects.update_or_create(
+            blog=blog, user=request.user,
+            defaults={'reaction_type': reaction_type}
+        )
+
+        reaction_summary = {rtype: blog.get_reaction_count(rtype) for rtype, _ in REACTION_CHOICES}
+        return JsonResponse({
+            'message': 'Reaction saved successfully',
+            'reaction_summary': reaction_summary,
+        })
+
+
+# @csrf_exempt
+# def react_to_blog(request, slug):
+#     if request.method == 'POST':
+#         blog = get_object_or_404(Blog, slug=slug)
+#         data = json.loads(request.body)
+#         reaction_type = data.get('reaction_type')
+
+#         # Debugging statements for reaction input
+#         print(f"Reaction Data: {data}")
+#         print(f"Reaction Type Received: {reaction_type}")
+#         print(f"Valid Reaction Types: {dict(REACTION_CHOICES).keys()}")
+
+#         if reaction_type not in dict(REACTION_CHOICES):
+#             print("Invalid Reaction Type!")
+#             return JsonResponse({'error': 'Invalid reaction type'}, status=400)
+
+#         # Update or create reaction
+#         reaction, created = Reaction.objects.update_or_create(
+#             blog=blog, user=request.user,
+#             defaults={'reaction_type': reaction_type}
+#         )
+
+#         # Debugging statements for reaction status
+#         print(f"Reaction Created: {created}")
+#         print(f"Reaction Type Saved: {reaction.reaction_type}")
+#         print(f"Total Reactions for '{reaction_type}': {blog.get_reaction_count(reaction_type)}")
+
+#         return JsonResponse({
+#             'message': 'Reaction saved successfully',
+#             'reaction_type': reaction.reaction_type,
+#             'reaction_count': blog.get_reaction_count(reaction_type),
+#         })
+#     else:
+#         print("Invalid Request Method!")
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 
 # View to like a blog post
-@login_required
-def like_blog(request, slug):
-    blog = get_object_or_404(Blog, slug=slug)
-    if blog.likes.filter(id=request.user.id).exists():
-        blog.likes.remove(request.user)
-    else:
-        blog.likes.add(request.user)
-        # Create a notification when a user likes a post
-        Notification.objects.create(
-            recipient=blog.author,
-            sender=request.user,
-            notification_type='like',
-            blog=blog
-        )
-    return redirect(blog.get_absolute_url())  # Redirect back to the blog's detail page
+# @login_required
+# def like_blog(request, slug):
+#     blog = get_object_or_404(Blog, slug=slug)
+#     if blog.likes.filter(id=request.user.id).exists():
+#         blog.likes.remove(request.user)
+#     else:
+#         blog.likes.add(request.user)
+#         # Create a notification when a user likes a post
+#         Notification.objects.create(
+#             recipient=blog.author,
+#             sender=request.user,
+#             notification_type='like',
+#             blog=blog
+#         )
+#     return redirect(blog.get_absolute_url())  # Redirect back to the blog's detail page
 
 # View to add a comment to a blog post
 @login_required

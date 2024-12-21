@@ -1,48 +1,236 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<section class="section blog-detail" aria-label="blog detail">
+{% block title %}
+{{ blog.title }}
+{% endblock title %}
+
+{% block contents %}
+<style>
+  /* Blog Detail */
+  .reactions {
+    margin-top: 20px;
+  }
+  
+  .reaction-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .reaction-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .reaction-btn:hover {
+    background-color: #e5e7eb;
+  }
+  
+  .reaction-counts {
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
+
+  .blog-detail .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .post-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+  }
+
+  .post-meta {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 25px;
+  }
+
+  .post-banner-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
+
+  .post-content {
+    line-height: 1.9;
+    font-size: 1.2rem;
+    color: #444;
+    margin-bottom: 40px;
+  }
+
+  .comments-section {
+    margin-top: 50px;
+  }
+
+  .comments-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .comment-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+  }
+
+  .comment-author {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+  }
+
+  .comment-date {
+    font-size: 0.9rem;
+    color: #999;
+  }
+
+  .comment-body {
+    font-size: 1.2rem;
+    color: #333;
+  }
+
+  .comment-form {
+    margin-top: 30px;
+  }
+
+  .form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+</style>
+
+<section class="blog-detail" aria-label="blog detail">
   <div class="container">
     <article class="blog-post">
-      <header class="post-header">
-        <h1 class="h1">{{ blog.title }}</h1>
+      <header class="post-header text-center">
+        <h1 class="post-title">{{ blog.title }}</h1>
         <p class="post-meta">
           Published on {{ blog.created_at|date:"F d, Y" }} by 
-          {% for author in blog.authors.all %}
-            <a href="#" class="author">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}
-          {% endfor %}
+          <a href="#" class="author-link">{{ blog.author.get_full_name|default:blog.author.username }}</a>
         </p>
       </header>
+
       <figure class="post-banner">
-        {% if blog.image %}
-          <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-cover">
+        {% if blog.blog_image %}
+          <img src="{{ blog.blog_image.url }}" alt="{{ blog.title }}" class="img-cover post-banner-image">
         {% else %}
-          <img src="/path/to/default-image.jpg" alt="{{ blog.title }}" class="img-cover">
+          <img src="/static/images/default-image.jpg" alt="{{ blog.title }}" class="img-cover post-banner-image">
         {% endif %}
       </figure>
+
       <div class="post-content">
         {{ blog.content|safe }}
       </div>
     </article>
+    
+    <section class="reactions">
+      <h3 class="h3">React to this post:</h3>
+      <div class="reaction-buttons">
+        <button class="reaction-btn" data-reaction="like">👍 Like</button>
+        <button class="reaction-btn" data-reaction="love">❤️ Love</button>
+        <button class="reaction-btn" data-reaction="haha">😂 Haha</button>
+        <button class="reaction-btn" data-reaction="wow">😮 Wow</button>
+        <button class="reaction-btn" data-reaction="sad">😢 Sad</button>
+        <button class="reaction-btn" data-reaction="angry">😡 Angry</button>
+        <button class="reaction-btn" data-reaction="applaud">👏 Applaud</button>  <!-- Added applaud reaction -->
+      </div>
+      <div class="reaction-counts">
+        {% comment %} <span id="like-count">👍 {{ reactions_summary.like }}</span>
+        <span id="love-count">❤️ {{ reactions_summary.love }}</span>
+        <span id="haha-count">😂 {{ reactions_summary.haha }}</span>
+        <span id="wow-count">😮 {{ reactions_summary.wow }}</span>
+        <span id="sad-count">😢 {{ reactions_summary.sad }}</span>
+        <span id="angry-count">😡 {{ reactions_summary.angry }}</span>
+        <span id="applaud-count">👏 {{ reactions_summary.applaud }}</span> <!-- Added applaud count -->
+      </div>  {% endcomment %}
+    </section>
 
     <section class="comments-section">
-      <h2 class="h2">Comments</h2>
+      <h2 class="comments-title">Comments</h2>
       <ul class="comments-list">
         {% for comment in blog.comments.all %}
-          <li class="comment">
-            <p><strong>{{ comment.author_name }}</strong> on {{ comment.created_at|date:"F d, Y H:i" }}</p>
-            <p>{{ comment.body }}</p>
+          <li class="comment-item">
+            <div class="comment-author">
+              <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+              <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
+            </div>
+            <p class="comment-body">{{ comment.content }}</p>
           </li>
         {% empty %}
-          <li>No comments yet. Be the first to comment!</li>
+          <li class="comment-empty">No comments yet. Be the first to comment!</li>
         {% endfor %}
       </ul>
-      <form method="post">
+
+      <form method="post" class="comment-form">
         {% csrf_token %}
-        <textarea name="comment_body" rows="5" placeholder="Write a comment..." required></textarea>
-        <button type="submit" class="btn">Post Comment</button>
+        <textarea name="comment_body" rows="5" class="form-textarea" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn btn-primary">Post Comment</button>
       </form>
     </section>
   </div>
 </section>
+
+<script>
+  document.querySelectorAll('.reaction-btn').forEach(button => {
+    button.addEventListener('click', function () {
+      const reactionType = this.dataset.reaction;
+      fetch("{% url 'react_to_blog' blog.slug %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({ reaction_type: reactionType }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.reaction_summary) {
+            document.getElementById('like-count').innerText = `👍 ${data.reaction_summary.like}`;
+            document.getElementById('love-count').innerText = `❤️ ${data.reaction_summary.love}`;
+            document.getElementById('haha-count').innerText = `😂 ${data.reaction_summary.haha}`;
+            document.getElementById('wow-count').innerText = `😮 ${data.reaction_summary.wow}`;
+            document.getElementById('sad-count').innerText = `😢 ${data.reaction_summary.sad}`;
+            document.getElementById('angry-count').innerText = `😡 ${data.reaction_summary.angry}`;
+            document.getElementById('applaud-count').innerText = `👏 ${data.reaction_summary.applaud}`;
+          }
+        });
+    });
+  });
+</script>
 {% endblock %}

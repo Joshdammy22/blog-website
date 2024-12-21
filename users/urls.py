@@ -24,6 +24,7 @@ urlpatterns = [
 
     # User Profile
     path('profile/', views.profile_view, name='profile'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('profile/<int:user_id>/', views.profile_view, name='profile'),
 
 

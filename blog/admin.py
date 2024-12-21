@@ -1,39 +1,51 @@
 from django.contrib import admin
-from .models import Follow, Comment, Blog, Notification, Tag
+from .models import Tag, Category, Blog, Reaction, Comment, Follow, Notification
 
-@admin.register(Blog)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
+
 class BlogAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'author', 'created_at', 'status')
-    list_filter = ('status', 'created_at', 'author')
-    search_fields = ('title', 'content', 'author__username')
-    prepopulated_fields = {'slug': ('title',)}  # Corrected field name
-    ordering = ('-created_at',)
-    autocomplete_fields = ('tags',)  # Added for easier tag selection in admin
+    list_display = ('title', 'author', 'status', 'created_at', 'modified_at', 'featured')
+    list_filter = ('status', 'featured', 'created_at', 'author')
+    search_fields = ('title', 'content')
+    prepopulated_fields = {'slug': ('title',)}
+    filter_horizontal = ('tags', 'categories')
+    
+    def get_reaction_summary(self, obj):
+        return obj.get_reaction_summary()
+    
+    get_reaction_summary.short_description = 'Reactions Summary'
 
-@admin.register(Comment)
+class ReactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'blog', 'reaction_type', 'created_at')
+    list_filter = ('reaction_type', 'created_at')
+    search_fields = ('blog__title', 'user__username')
+
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('blog', 'author', 'created_at', 'content_summary')
+    list_display = ('author', 'blog', 'created_at')
     list_filter = ('created_at', 'author')
     search_fields = ('content', 'author__username', 'blog__title')
 
-    def content_summary(self, obj):
-        return obj.content[:50] + ('...' if len(obj.content) > 50 else '')
-    content_summary.short_description = 'Comment Content'
-
-@admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('follower', 'followee', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('follower__username', 'followee__username')
 
-@admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('recipient', 'sender', 'notification_type', 'created_at', 'is_read')
     list_filter = ('notification_type', 'is_read', 'created_at')
     search_fields = ('recipient__username', 'sender__username', 'notification_type')
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-    ordering = ('name',)
+# Register models in the admin panel
+admin.site.register(Tag, TagAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Blog, BlogAdmin)
+admin.site.register(Reaction, ReactionAdmin)
+admin.site.register(Comment, CommentAdmin)
+admin.site.register(Follow, FollowAdmin)
+admin.site.register(Notification, NotificationAdmin)
