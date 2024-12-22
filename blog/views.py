@@ -4,12 +4,15 @@ from .models import *
 from .forms import *
 from django.http import JsonResponse, HttpResponseRedirect
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 import json
 
 # View to create a blog post
 def create_blog(request):
+    if not request.user.profile.is_subscription_active():
+        return HttpResponseForbidden("You must have an active subscription to create posts.")
+    
     if request.method == 'POST':
         title = request.POST.get('title')
         content = request.POST.get('content')

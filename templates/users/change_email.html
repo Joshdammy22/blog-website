@@ -1,0 +1,8 @@
+<!-- Email Change Button -->
+<div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" id="email" name="email" value="{{ request.user.email }}" required>
+    <button type="button" class="btn btn-link">
+        <a href="{% url 'change_email' %}">Change Email</a>
+    </button>
+</div>

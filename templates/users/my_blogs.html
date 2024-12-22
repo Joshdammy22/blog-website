@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %} My Blogs {% endblock %}
+
+{% block contents %}
+<section class="section my-blogs">
+    <div class="container">
+        <h2 class="h2 section-title">My Blogs</h2>
+        <ul class="blogs-list">
+            {% for blog in blogs %}
+            <li class="blog-item">
+                <a href="{% url 'view_blog' blog.id %}">
+                    <h3>{{ blog.title }}</h3>
+                    <p>{{ blog.summary }}</p>
+                </a>
+            </li>
+            {% empty %}
+            <li>No blogs found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}

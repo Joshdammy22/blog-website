@@ -57,7 +57,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'allauth.account.middleware.AccountMiddleware',# allauth middleware
 ]
 
@@ -86,6 +85,14 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "my_cache_table",
+    }
+}
+
+SECURITY_SALT = config('SECURITY_SALT')
 
 WSGI_APPLICATION = 'myblog.wsgi.application'
 
@@ -201,68 +208,45 @@ TWITTER_CONSUMER_KEY = config('TWITTER_CONSUMER_KEY')
 TWITTER_CONSUMER_SECRET = config('TWITTER_CONSUMER_SECRET')
 
 # GitHub OAuth Credentials
-SOCIAL_AUTH_GITHUB_KEY = config('SOCIAL_AUTH_GITHUB_KEY')
-SOCIAL_AUTH_GITHUB_SECRET = config('SOCIAL_AUTH_GITHUB_SECRET')
+GITHUB_CLIENT_ID = config('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = config('GITHUB_CLIENT_SECRET')
 
 # Social Account Providers Configuration
 SOCIALACCOUNT_PROVIDERS = {
-    # Facebook OAuth Configuration
     'facebook': {
         'APP': {
             'client_id': FACEBOOK_APP_ID,
             'secret': FACEBOOK_APP_SECRET,
-            'key': ''
         },
-        'METHOD': 'oauth2',
         'SCOPE': ['email', 'public_profile'],
-        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-        'INIT_PARAMS': {'cookie': True},
-        'FIELDS': ['id', 'email', 'name'],
         'VERIFIED_EMAIL': False,
-        'VERSION': 'v17.0',
-        'REDIRECT_URL': 'http://127.0.0.1:8000/accounts/facebook/login/callback/',  # Redirect URI for Facebook
     },
-    # Google OAuth Configuration
     'google': {
         'APP': {
             'client_id': GOOGLE_client_id,
             'secret': GOOGLE_client_secret,
-            'key': ''
         },
-        'METHOD': 'oauth2',
         'SCOPE': ['profile', 'email'],
-        'FIELDS': ['id', 'email', 'name'],
         'VERIFIED_EMAIL': True,
-        'REDIRECT_URL': 'http://127.0.0.1:8000/accounts/google/login/callback/flowName=GeneralOAuthFlow',  # Redirect URI for Google
     },
-    # Twitter OAuth Configuration
     'twitter': {
         'APP': {
             'client_id': TWITTER_CONSUMER_KEY,
             'secret': TWITTER_CONSUMER_SECRET,
-            'key': ''
         },
-        'METHOD': 'oauth1',
-        'SCOPE': ['email'],
-        'REDIRECT_URL': 'http://127.0.0.1:8000/accounts/twitter/login/callback/',  # Redirect URI for Twitter
     },
-    # GitHub OAuth Configuration
     'github': {
         'APP': {
-            'client_id': SOCIAL_AUTH_GITHUB_KEY,
-            'secret': SOCIAL_AUTH_GITHUB_SECRET,
-            'key': ''
+            'client_id': GITHUB_CLIENT_ID,
+            'secret': GITHUB_CLIENT_SECRET,
         },
-        'REDIRECT_URL': 'http://127.0.0.1:8000/accounts/github/login/callback/',  # Redirect URI for GitHub
-        'METHOD': 'oauth2',
         'SCOPE': ['user', 'user:email'],
-        'FIELDS': ['id', 'email', 'login'],
         'VERIFIED_EMAIL': True,
-    }
+    },
 }
 
 # Redirect URLs
-LOGIN_REDIRECT_URL = '/'  # After login
+LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/'
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"  # After logout
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/login-error/'
@@ -274,7 +258,8 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'
+
 
 USE_I18N = True
 

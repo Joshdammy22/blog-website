@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %} Recent Activities {% endblock %}
+
+{% block contents %}
+<section class="section recent-activities">
+    <div class="container">
+        <h2 class="h2 section-title">Recent Activities</h2>
+        <ul class="activities-list">
+            {% for activity in activities %}
+            <li class="activity-item">
+                <p>{{ activity.activity }}</p>
+                <span class="timestamp">{{ activity.timestamp }}</span>
+            </li>
+            {% empty %}
+            <li>No recent activities found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}

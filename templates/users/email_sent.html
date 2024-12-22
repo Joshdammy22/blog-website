@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Email Sent{% endblock %}
+
+{% block contents %}
+<style>
+    /* Centering wrapper */
+    .email-verification-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Align items to the top */
+        background-color: #f9f9f9;
+    }
+
+    /* Card styling */
+    .verification-card {
+        background: #333333; /* Dark background for the card */
+        border-radius: 12px; /* Slightly larger rounding */
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1); /* Deeper shadow for more depth */
+        padding: 4rem; /* Increased padding for more space inside */
+        width: 100%;
+        max-width: 600px; /* Larger card width */
+        height: 400px; /* Increased card height */
+        text-align: center;
+        font-family: Arial, sans-serif; /* Ensure consistent font */
+    }
+
+    .verification-card h2 {
+        font-size: 2.5rem; /* Increased font size for header */
+        margin-bottom: 2rem; /* Larger space below the header */
+        color: #ffffff; /* White text for the header */
+    }
+
+    .verification-card p {
+        font-size: 1.25rem; /* Increased font size for body text */
+        color: #dcdcdc; /* Lighter text for readability on dark background */
+        margin-bottom: 2rem; /* More space between paragraphs */
+    }
+
+    .verification-card a {
+        color: #4d90fe; /* Lighter blue for the link */
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.25rem; /* Larger link text */
+    }
+
+    .verification-card a:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="email-verification-wrapper">
+    <div class="verification-card">
+        <h2>Verify Your Email Address</h2>
+        <p>Please click the link sent to <strong>{{ email }}</strong> to verify your email address.</p>
+        <p>
+            If you didn't receive the email, you can 
+            <a href="{% url 'resend_verification_email' email=email %}">click here</a> 
+            to resend it.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock footer %}

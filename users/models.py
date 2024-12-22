@@ -27,19 +27,16 @@ class Profile(models.Model):
     website = models.URLField(blank=True, null=True, help_text="Add a link to your personal website or portfolio.")
     location = models.CharField(max_length=100, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
-    verification_token = models.CharField(
-        max_length=64, 
-        blank=True, 
-        null=True, 
-        help_text="Token for email verification."
-    )
+    # subscription_type = models.CharField(
+    #     max_length=10,
+    #     choices=[('monthly', 'Monthly'), ('annual', 'Annual')],
+    #     blank=True,
+    #     null=True
+    # )
+    # subscription_end = models.DateTimeField(blank=True, null=True)
 
-    def generate_verification_token(self):
-        self.verification_token = get_random_string(length=64)
-        self.save()
-
-    def __str__(self):
-        return f"{self.user.username} Profile"
+    # def is_subscription_active(self):
+    #     return self.subscription_end and self.subscription_end > now()
 
 
 
@@ -79,27 +76,38 @@ class UserSettings(models.Model):
     def __str__(self):
         return f"Settings for {self.user.username}"
 
-
 class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
     is_verified = models.BooleanField(default=False)
-
-    def generate_otp(self):
-        """Generate a 6-digit OTP"""
-        self.otp = str(random.randint(100000, 999999))
-        self.created_at = timezone.now()
-        self.is_verified = False
-        self.save()
+    created_at = models.DateTimeField(auto_now_add=True)  # Add this field to track OTP generation time
 
     def is_expired(self):
-        """Check if the OTP has expired (set to 5 minutes for this example)"""
-        expiration_time = self.created_at + timedelta(minutes=5)
-        return timezone.now() > expiration_time
+        """Check if the OTP has expired."""
+        return timezone.now() > self.expires_at
 
-    def __str__(self):
-        return f"OTP for {self.user.username}"
+
+# class OTP(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     otp = models.CharField(max_length=6)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     is_verified = models.BooleanField(default=False)
+
+#     def generate_otp(self):
+#         """Generate a 6-digit OTP"""
+#         self.otp = str(random.randint(100000, 999999))
+#         self.created_at = timezone.now()
+#         self.is_verified = False
+#         self.save()
+
+#     def is_expired(self):
+#         """Check if the OTP has expired (set to 5 minutes for this example)"""
+#         expiration_time = self.created_at + timedelta(minutes=5)
+#         return timezone.now() > expiration_time
+
+#     def __str__(self):
+#         return f"OTP for {self.user.username}"
 
 class SubscriptionList(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")

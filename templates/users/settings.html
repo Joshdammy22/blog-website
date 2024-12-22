@@ -1,21 +1,207 @@
 {% extends 'base.html' %}
 
+{% block title %}Settings{% endblock title %}
+
 {% block contents %}
-<div class="container mt-5">
-    <h2>Settings</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="email_notifications" name="email_notifications" 
-                {% if settings.email_notifications %}checked{% endif %}>
-            <label class="form-check-label" for="email_notifications">Email Notifications</label>
-        </div>
-        <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="dark_mode" name="dark_mode" 
-                {% if settings.dark_mode %}checked{% endif %}>
-            <label class="form-check-label" for="dark_mode">Dark Mode</label>
-        </div>
-        <button type="submit" class="btn btn-primary">Save Settings</button>
-    </form>
+<style>
+/* Container styling */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Card Styling */
+.card {
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    padding: 30px;
+    margin: 0 auto;
+}
+
+/* Heading */
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+}
+
+/* Form Group Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Grid Layout for settings */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns layout */
+    gap: 20px;
+}
+
+/* Label Styling */
+label {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Input Field Styling */
+input[type="email"],
+input[type="password"],
+input[type="checkbox"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.form-check-label {
+    font-size: 16px;
+    color: #333;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Submit Button Styling */
+button[type="submit"],
+button[type="button"] {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover,
+button[type="button"]:hover {
+    background-color: #0056b3;
+}
+
+/* Password Instructions Styling */
+h4 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.password-instructions {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    color: #555;
+}
+
+.password-instructions ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.password-instructions li {
+    margin-bottom: 8px;
+}
+
+/* Success and Error Message Styling */
+.messages {
+    font-size: 16px;
+    color: #333;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.messages.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.messages.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+</style>
+
+<div class="container">
+    <div class="card">
+        <h2>Settings</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Settings Grid -->
+            <div class="settings-grid">
+                <!-- Email Notifications -->
+                <div class="form-group">
+                    <input type="checkbox" class="form-check-input" id="email_notifications" name="email_notifications" 
+                        {% if settings.email_notifications %}checked{% endif %}>
+                    <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                </div>
+
+                <!-- Dark Mode -->
+                <div class="form-group">
+                    <input type="checkbox" class="form-check-input" id="dark_mode" name="dark_mode" 
+                        {% if settings.dark_mode %}checked{% endif %}>
+                    <label class="form-check-label" for="dark_mode">Dark Mode</label>
+                </div>
+            </div>
+
+            <!-- Save Button for Email Notifications and Dark Mode -->
+            <div class="form-group">
+                <button type="submit" name="action" value="update_settings">Save Settings</button>
+            </div>
+
+            <!-- Email Change -->
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ request.user.email }}" required>
+            </div>
+
+            <!-- Save Button for Email Change -->
+            <div class="form-group">
+                <button type="submit" name="action" value="change_email">Change Email</button>
+            </div>
+
+            <!-- Password Change -->
+            <div class="form-group">
+                <h4>Change Password</h4>
+                <div class="password-instructions">
+                    <p>Ensure that your new password meets the following requirements:</p>
+                    <ul>
+                        <li>At least 8 characters long</li>
+                        <li>Contains both uppercase and lowercase letters</li>
+                        <li>Includes at least one number</li>
+                        <li>Includes at least one special character (e.g., @, #, $, etc.)</li>
+                    </ul>
+                </div>
+                {{ password_form.as_p }}
+            </div>
+
+            <!-- Save Button for Password Change -->
+            <div class="form-group">
+                <button type="submit" name="action" value="change_password">Change Password</button>
+            </div>
+        </form>
+    </div>
 </div>
+
 {% endblock %}
+

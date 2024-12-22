@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %} Notifications {% endblock %}
+
+{% block contents %}
+<section class="section notifications">
+    <div class="container">
+        <h2 class="h2 section-title">Notifications</h2>
+        
+        <ul class="notifications-list">
+            {% for notification in notifications %}
+            <li class="notification-item {% if notification.is_read %}read{% else %}unread{% endif %}">
+                <p>
+                    {% if notification.notification_type == 'reaction' %}
+                        {{ notification.sender.username }} reacted to your blog post "{{ notification.blog.title }}" with a "{{ notification.comment.content }}" reaction.
+                    {% elif notification.notification_type == 'comment' %}
+                        {{ notification.sender.username }} commented on your blog post "{{ notification.blog.title }}": "{{ notification.comment.content }}"
+                    {% elif notification.notification_type == 'follow' %}
+                        {{ notification.sender.username }} started following you.
+                    {% endif %}
+                </p>
+                <span class="timestamp">{{ notification.created_at|date:"F j, Y, g:i a" }}</span>
+            </li>
+            {% empty %}
+            <p>You have no notifications at this time.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}

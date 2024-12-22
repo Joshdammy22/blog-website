@@ -3,39 +3,289 @@
 {% block title %} Profile {% endblock title %}
 
 {% block contents %}
-<section class="section profile">
-    <div class="container">
-      <div class="profile-header">
+<style>
+/* General Grid Layout */
+.grid-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-areas: 
+        "sidebar main";
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    grid-area: sidebar;
+    background-color: #263043;
+    color: #fff;
+    padding: 20px 0;
+    height: 100%;
+    transition: transform 0.3s ease-in-out;
+    z-index: 10;
+    transform: translateX(0); /* Default visible for desktop */
+    position: relative; /* Position for desktop */
+    top: 30p;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: absolute;
+    top: 30x;
+    left: 20px;
+    z-index: 20;
+    background: #263043;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    display: none; /* Hidden by default */
+    cursor: pointer;
+}
+
+.sidebar-toggle .material-icons-outlined {
+    font-size: 24px;
+}
+
+.sidebar-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.sidebar-title .sidebar-brand {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.sidebarlist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-list-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.sidebar-list-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.material-icons-outlined {
+    vertical-align: middle;
+    margin-right: 10px;
+}
+.menu-close{
+  cursor: pointer;
+  display:none;
+}
+/* Sidebar Responsive (for smaller screens) */
+@media screen and (max-width: 992px) {
+    #sidebar {
+        transform: translateX(-260px); /* Hidden by default */
+        position: fixed;
+        top: 89px;
+        left: 0;
+        height: 100%;
+    }
+
+    #sidebar.sidebar-responsive {
+        transform: translateX(0); /* Show sidebar */
+    }
+
+    .sidebar-toggle {
+        display: block; /* Show toggle button */
+    }
+    .menu-close {
+        display: block; /* Show toggle button */
+    }
+}
+
+/* Main Content Styling */
+.main-container {
+    grid-area: main;
+    padding: 40px 20px;
+    overflow-y: auto;
+    background-color: #f4f5f7;
+    z-index: 5; /* Ensure it stays below the sidebar on small screens */
+    position: relative;
+}
+
+/* Profile Card */
+.profile-card {
+    background: #fff;
+    margin: 0 auto;
+    padding: 30px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    text-align: center;
+}
+
+.profile-picture img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-details {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.profile-details li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #6c757d;
+}
+
+.bio {
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 20px;
+}
+
+.card-footer .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #2962ff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.card-footer .btn:hover {
+    background-color: #0039cb;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* Ensure full width */
+        grid-template-areas:
+            "main";
+    }
+
+    .main-container {
+        padding: 20px;
+        z-index: 1; /* Below sidebar when toggled */
+    }
+
+    .profile-card {
+        max-width: 100%; /* Full width on smaller screens */
+        margin: 20px auto;
+    }
+
+    #sidebar {
+        position: fixed;
+        z-index: 20; /* Above profile card */
+    }
+}
+</style>
+
+<section class="section profile grid-container">
+  <!-- Toggle Button -->
+  <button class="sidebar-toggle" onclick="toggleSidebar()">
+    <span class="material-icons-outlined">menu</span>
+  </button>
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-title">
+      <div class="sidebar-brand">
+        <span class="material-icons-outlined">dashboard</span> Dashboard
+      </div>
+      <span class="material-icons-outlined menu-close" onclick="closeSidebar()">close</span>
+    </div>
+    <ul class="sidebarlist">
+      <li class="sidebar-list-item">
+        <a href="{% url 'edit_profile' %}">
+          <span class="fas fa-user-circle"></span> Edit Profile
+        </a>
+      </li>
+      <li class="sidebar-list-item">
+        <a href="{% url 'notifications' %}">
+          <span class="fas fa-bell"></span> Notifications
+        </a>
+      </li>
+      <li class="sidebar-list-item">
+        <a href="{% url 'my_blogs' %}">
+          <span class="fas fa-pen"></span> My Blogs
+        </a>
+      </li>
+      <li class="sidebar-list-item">
+        <a href="{% url 'recent_activities' %}">
+          <span class="fas fa-clipboard-list"></span> Recent Activities
+        </a>
+      </li>
+      <li class="sidebar-list-item">
+        <a href="{% url 'settings' %}">
+          <span class="fas fa-cogs"></span> Settings
+        </a>
+      </li>
+    </ul>    
+  </aside>
+  <!-- End Sidebar -->
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <!-- Profile Card -->
+    <div class="card profile-card centered">
+      <div class="card-header">
         <div class="profile-picture">
           {% if user.profile.profile_picture %}
-          <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}'s Profile Picture" class="img-cover">
+          <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}'s Profile Picture" class="img-cover rounded-circle">
           {% else %}
-          <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" class="img-cover">
+          <img src="{% static 'images/user.jpg' %}" alt="Default Profile Picture" class="img-cover rounded-circle">
           {% endif %}
         </div>
-        <div class="profile-info">
-          <h1 class="h2">{{ user.profile.first_name }} {{ user.profile.last_name }}</h1>
-          <p class="bio">{{ user.profile.bio|default:"This user has not added a bio yet." }}</p>
-          <ul class="profile-details">
-            <li><strong>Username:</strong> {{ user.username }}</li>
-            <li><strong>Email:</strong> {{ user.email }}</li>
-            {% if user.profile.phone_number %}
-            <li><strong>Phone:</strong> {{ user.profile.phone_number }}</li>
-            {% endif %}
-            {% if user.profile.website %}
-            <li><strong>Website:</strong> <a href="{{ user.profile.website }}" target="_blank">{{ user.profile.website }}</a></li>
-            {% endif %}
-            {% if user.profile.location %}
-            <li><strong>Location:</strong> {{ user.profile.location }}</li>
-            {% endif %}
-            {% if user.profile.birth_date %}
-            <li><strong>Date of Birth:</strong> {{ user.profile.birth_date }}</li>
-            {% endif %}
-          </ul>
-          <a href="{% url 'edit_profile' %}" class="btn">Edit Profile</a>
-        </div>
+      </div>
+      <div class="card-body">
+        <h1 class="h2 text-center">{{ user.profile.first_name }} {{ user.profile.last_name }}</h1>
+        <p class="bio text-center">{{ user.profile.bio|default:"You have not added a bio yet." }}</p>
+        <ul class="profile-details">
+          <li><strong>Username:</strong> {{ user.username }}</li>
+          <li><strong>Email:</strong> {{ user.email }}</li>
+          {% if user.profile.phone_number %}
+          <li><strong>Phone:</strong> {{ user.profile.phone_number }}</li>
+          {% endif %}
+          {% if user.profile.website %}
+          <li><strong>Website:</strong> <a href="{{ user.profile.website }}" target="_blank" class="profile-link">{{ user.profile.website }}</a></li>
+          {% endif %}
+          {% if user.profile.location %}
+          <li><strong>Location:</strong> {{ user.profile.location }}</li>
+          {% endif %}
+          {% if user.profile.birth_date %}
+          <li><strong>Date of Birth:</strong> {{ user.profile.birth_date }}</li>
+          {% endif %}
+        </ul>
       </div>
     </div>
-  </section>
-  
+  </div>
+</section>
+
+<script>
+  const sidebar = document.getElementById("sidebar");
+  let isSidebarOpen = false;
+
+  function toggleSidebar() {
+    sidebar.classList.toggle("sidebar-responsive");
+    isSidebarOpen = !isSidebarOpen;
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove("sidebar-responsive");
+    isSidebarOpen = false;
+  }
+</script>
 {% endblock %}

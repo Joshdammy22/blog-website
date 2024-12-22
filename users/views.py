@@ -4,139 +4,221 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import *
 from .models import *
+from blog.models import *
 from django.utils.timezone import now
-from .utils import send_verification_email, request_otp
-from django.shortcuts import render, redirect
+from .utils import *
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.conf import settings
 import requests
 from http.client import RemoteDisconnected
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.core.cache import cache
+from django.utils.timezone import now
+from datetime import timedelta
 
-# User Registration View
+# Logger setup
+logger = logging.getLogger(__name__)
+
 def register(request):
     """
     Handles user registration and sends an email verification link.
     Redirects authenticated users to the home page.
     """
-    # Check if the user is already authenticated
     if request.user.is_authenticated:
         messages.info(request, 'You are already registered and logged in. Redirecting to home...')
-        return redirect('home')  # Redirect to home if the user is already authenticated
-    
-    print("Accessing register view...") 
+        return redirect('home')
+
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # User remains inactive until email verification
-            user.save()
+            try:
+                # Create a user instance but do not save yet
+                user = form.save(commit=False)
+                user.is_active = False  # Keep inactive until verification
 
-            # Create user profile
-            Profile.objects.create(user=user)
+                # Send the verification email
+                try:
+                    send_verification_email(request, user)
+                    user.save()  # Save the user only after email is sent
+                    messages.success(request, 'Registration successful. Please check your email to verify your account.')
+                    return redirect('email_sent', email=user.email)
+                except Exception as e:
+                    logger.error(f"Error sending verification email: {e}")
+                    messages.error(request, 'Error sending verification email. Please try again later.')
+                    return redirect('register')
 
-            # Send the verification email
-            send_verification_email(request, user)
-
-            print(f"Verification email sent to {user.email}.") 
-            messages.success(request, 'Registration successful. Please check your email to verify your account.')
-            return redirect('login')
+            except IntegrityError as e:
+                logger.error(f"Integrity error during registration: {e}")
+                messages.error(request, 'Username or email already exists. Please use a different one.')
+            except ValidationError as e:
+                logger.error(f"Validation error during registration: {e}")
+                messages.error(request, 'Invalid data provided. Please correct the errors and try again.')
+            except Exception as e:
+                logger.error(f"Unexpected error during registration: {e}")
+                messages.error(request, 'An unexpected error occurred. Please try again later.')
         else:
-            print("Registration form is invalid:", form.errors) 
-            messages.error(request, 'There was an error with your registration. Please try again.')
+            # Form is invalid: handle field-specific errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
     else:
         form = UserRegisterForm()
 
-    print("Passing form to template.") 
     return render(request, 'users/register.html', {'form': form})
+
+def email_sent(request, email):
+    """
+    Displays a page asking the user to verify their email address.
+    Provides an option to resend the verification email.
+    """
+    return render(request, "users/email_sent.html", {'email': email})
 
 
 def email_verification(request, token):
     """
-    Verifies a user's email using the token provided in the verification email.
+    Verifies a user's email using the token and updates their Profile's email_verified field
+    and the User's is_active field.
     """
-    try:
-        profile = get_object_or_404(Profile, verification_token=token)
-        profile.user.is_active = True  # Activate the user
-        profile.user.save()
-        profile.email_verified = True  # Mark the email as verified
-        profile.verification_token = ""  # Clear the token once used
-        profile.save()
-        messages.success(request, 'Your email has been verified successfully. You can now log in.')
-        return redirect('login')
-    except Exception as e:
-        print(f"Verification failed: {e}")
+    email = validate_verification_token(token)
+    if not email:
         messages.error(request, 'Invalid or expired verification token. Please try again.')
         return redirect('register')
 
-def login_view(request):
-    """
-    Handles user login, prevents an unverified user or an already authenticated user from logging in.
-    """
-    # Check if the user is already authenticated
-    if request.user.is_authenticated:
-        messages.info(request, 'You are already registered and logged in. Redirecting to home...')
-        return redirect('home')  # Redirect to home if the user is already authenticated
+    try:
+        # Fetch the user by email
+        user = User.objects.get(email=email)
+
+        # Update the user's active status and profile email verification status
+        user.is_active = True
+        user.save()
+
+        # Ensure the Profile exists and update email_verified
+        profile, created = Profile.objects.get_or_create(user=user)
+        profile.email_verified = True
+        profile.save()
+
+        messages.success(request, 'Your email has been verified successfully. You can now log in.')
+        return redirect('login')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found. Please register again.')
+        return redirect('register')
+    except Exception as e:
+        # Log unexpected errors for debugging
+        logger.error(f"Unexpected error during email verification: {e}")
+        messages.error(request, 'An unexpected error occurred. Please try again later.')
+        return redirect('register')
     
-    print("Accessing login view...") 
+
+def resend_verification_email(request, email):
+    """
+    Resends the email verification link to the given email address with rate limiting.
+    """
+    cache_key = f"resend_email_limit_{email}"
+    max_resends = 2  # Maximum allowed resends
+    time_window = timedelta(hours=1)  # Time window for the rate limit (e.g., 1 hour)
+
+    # Retrieve rate limit data from the cache
+    resend_data = cache.get(cache_key, {"count": 0, "first_attempt": now()})
+    resend_count = resend_data["count"]
+    first_attempt = resend_data["first_attempt"]
+
+    # Check if the rate limit has been exceeded
+    if resend_count >= max_resends and now() < first_attempt + time_window:
+        messages.error(
+            request,
+            f"You have exceeded the maximum number of resend attempts. Please try again after "
+            f"{(first_attempt + time_window - now()).seconds // 60} minutes."
+        )
+        return redirect("email_sent", email=email)
+
+    # Update the cache with the new attempt
+    if now() > first_attempt + time_window:
+        # Reset the counter if the time window has passed
+        resend_data = {"count": 1, "first_attempt": now()}
+    else:
+        resend_data["count"] += 1
+
+    # Save the updated data to the cache
+    cache.set(cache_key, resend_data, timeout=int(time_window.total_seconds()))
+
+    try:
+        user = User.objects.get(email=email, is_active=False)
+        send_verification_email(request, user)
+        messages.success(request, f"A new verification email has been sent to {email}.")
+    except User.DoesNotExist:
+        messages.error(request, "No inactive account found with this email address.")
+    except Exception as e:
+        logger.error(f"Error resending verification email: {e}")
+        messages.error(request, "An error occurred while resending the email. Please try again later.")
+
+    return redirect("email_sent", email=email)
+
+
+# User Login View
+def login_view(request):
+    if request.user.is_authenticated:
+        messages.info(request, 'You are already logged in. Redirecting to home...')
+        return redirect('home')
+
     form = UserLoginForm(data=request.POST or None)
 
     if request.method == "POST":
         try:
-            if form.is_valid():  # Validates all fields, including the reCAPTCHA
+            if form.is_valid():
                 username_or_email = form.cleaned_data.get('username')
                 password = form.cleaned_data.get('password')
 
                 try:
-                    # Find user by username or email
                     user_obj = User.objects.get(
                         Q(username=username_or_email) | Q(email=username_or_email)
                     )
-                    # Check if the user is inactive (not verified)
+
                     if not user_obj.is_active:
-                        messages.error(request, 'Your account is inactive. Please verify your email to log in.')
+                        messages.error(request, 'Your email is unverified. Please check your inbox and verify your email.')
                         return redirect('login')
 
-                    # Authenticate the user
                     user = authenticate(request, username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    user = None
+                    if user:
+                        login(request, user)
+                        messages.success(request, 'You have successfully logged in!')
 
-                if user:
-                    # Log in the user
-                    login(request, user)
-                    messages.success(request, 'You have successfully logged in!')
-                    return redirect('home')  # Redirect to a home/dashboard page
-                else:
-                    messages.error(request, 'Invalid credentials. Please try again.')
+                        # Generate OTP and send it
+                        otp = create_and_send_otp(user)
+
+                        # Redirect to OTP verification page
+                        return redirect('verify_otp')  # Redirect to OTP verification page
+
+                    else:
+                        messages.error(request, 'Invalid login details. Please check your username/email and password.')
+                        return redirect('login')
+
+                except User.DoesNotExist:
+                    messages.error(request, 'User not found. Please check your credentials or sign up.')
+                    return redirect('login')
+
             else:
-                # Handle invalid form submission
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.error(request, error)
 
+        except Exception as e:
+            messages.error(request, 'An unexpected error occurred. Please try again.')
+            print(f"Unexpected error during login: {e}")
+            return redirect('login')
+
         except RemoteDisconnected:
-            # Handle RemoteDisconnected exception gracefully
             print("RemoteDisconnected error occurred during login.")
             messages.error(
                 request,
                 "There was a connection issue while processing your request. Please try again."
             )
-            return redirect('login')  # Redirect to the login page
-
-        except Exception as e:
-            # Catch any other unexpected exceptions
-            print(f"Unexpected error: {e}")
-            messages.error(
-                request,
-                "An unexpected error occurred. Please try again or contact support."
-            )
-            return redirect('login')  # Redirect to the login page
+            return redirect('login')
 
     return render(request, 'users/login.html', {'form': form})
-
-
 
 def verify_otp(request):
     """Handle OTP verification"""
@@ -147,6 +229,7 @@ def verify_otp(request):
             otp = OTP.objects.get(user=request.user, otp=otp_code, is_verified=False)
             print(f"Attempting OTP verification for {request.user.username}.")  
 
+            # Check if OTP has expired
             if otp.is_expired():
                 messages.error(request, 'OTP has expired. Please request a new one.')
                 print(f"OTP expired for {request.user.username}.")  
@@ -165,38 +248,43 @@ def verify_otp(request):
     print("Passing OTP verification form to template.")  
     return render(request, 'users/verify_otp.html')
 
-
 def resend_otp(request):
-    """Handle resending OTP if the current OTP has expired"""
+    """Handle resending OTP with rate limit of 2 attempts within 10 minutes."""
     print("Accessing resend OTP view...")  
+    
     if request.method == "POST":
         try:
+            # Check if the user has attempted to resend OTP more than twice in the last 10 minutes
+            recent_attempts = OTP.objects.filter(
+                user=request.user,
+                is_verified=False,
+                created_at__gte=timezone.now() - timezone.timedelta(minutes=10)
+            ).count()
+
+            if recent_attempts >= 2:
+                messages.error(request, 'You have reached the limit of 2 OTP resend attempts within 10 minutes. Please try again later.')
+                print(f"User {request.user.username} reached OTP resend attempt limit.")
+                return redirect('verify_otp')  # Redirect to OTP verification page
+
+            # Attempt to fetch an existing OTP (that is not yet verified) for the user
             otp = OTP.objects.get(user=request.user, is_verified=False)
 
             if otp.is_expired():
-                # Generate a new OTP
-                otp.generate_otp()
-                otp.save()
-
-                # Send new OTP to the user via email
-                send_mail(
-                    'Your New OTP Code',
-                    f'Your new OTP code is: {otp.otp}',
-                    'noreply@example.com',
-                    [request.user.email],
-                    fail_silently=False,
-                )
+                # If OTP expired, generate a new one and send it
+                otp = create_and_send_otp(request.user)
                 messages.success(request, 'A new OTP has been sent to your email.')
-                print(f"A new OTP has been sent to {request.user.email}.")  
+                print(f"A new OTP has been sent to {request.user.email}.")
             else:
                 messages.error(request, 'Your OTP is still valid. Please use it before requesting a new one.')
-                print(f"OTP for {request.user.username} is still valid.")  
+                print(f"OTP for {request.user.username} is still valid.")
+                
         except OTP.DoesNotExist:
-            messages.error(request, 'No valid OTP found. Please request a new OTP.')
-            print(f"No valid OTP found for {request.user.username}.")  
+            # If no valid OTP is found, generate a new one
+            otp = create_and_send_otp(request.user)
+            messages.success(request, 'A new OTP has been sent to your email.')
+            print(f"No valid OTP found. Generated new OTP for {request.user.email}.")
 
     return redirect('verify_otp')  # Redirect to OTP verification page
-
 
 
 # User Logout View
@@ -215,29 +303,29 @@ def logout_view(request):
 def profile_view(request):
     print(f"Accessing profile view for user {request.user.username}.")
     
-    # Check if the user's email is verified
-    if not hasattr(request.user, 'profile') or not request.user.profile.email_verified:
-        if not hasattr(request.user, 'profile'):
-            print(f"User {request.user.username} has no profile. Creating one.")
-            # Create the profile if it doesn't exist
-            profile = Profile.objects.create(user=request.user)
-            print(f"Created profile for user {request.user.username}.")
-        else:
-            print(f"User {request.user.username} has an unverified email.")
-        
-        messages.warning(request, 'Your email is not verified or profile does not exist. Please verify your email or create your profile!')
-        return redirect('email_verification_request')  # Redirect to the email verification request page
+    # Check if the user's profile exists
+    if not hasattr(request.user, 'profile'):
+        print(f"User {request.user.username} has no profile. Creating one.")
+        # Create the profile if it doesn't exist
+        profile = Profile.objects.create(user=request.user)
+        print(f"Created profile for user {request.user.username}.")
+    else:
+        # Retrieve the profile if it exists
+        profile = request.user.profile
+        print(f"User profile details: {profile}")
     
-    # If the profile exists, retrieve it
-    profile = request.user.profile
-    print(f"User profile details: {profile}")
+    # Check if the user is active
+    if not request.user.is_active:
+        print(f"User {request.user.username}'s email is not verified.")
+        messages.warning(request, 'Your account\'s email is yet verified.')
+        return redirect('email_verification_request')  # Redirect to an appropriate page for inactive accounts
 
+    # Pass the profile to the template
     context = {
         'profile': profile,
     }
 
     return render(request, 'users/profile.html', context)
-
 
 
 def email_verification_request(request):
@@ -260,6 +348,7 @@ def email_verification_request(request):
             token = user.profile.generate_verification_token()
             send_verification_email(request, user)
             messages.success(request, 'A new verification email has been sent to your email address.')
+            redirect('email_sent', email=email)
         else:
             messages.info(request, 'Your email is already verified.')
         
@@ -295,33 +384,57 @@ def edit_profile(request):
             print(f"Form is invalid. Errors: {form.errors}")
     else:
         form = ProfileUpdateForm(instance=profile)
-
-    # Print the form instance for debugging
-    print(f"Rendering form for user {request.user.username}. Form instance: {form}")
-
     return render(request, 'users/edit_profile.html', {'form': form})
 
 
-
-# User Settings View
 @login_required
 def settings_view(request):
     """
-    Manages user settings such as email notifications and dark mode preferences.
+    Manages user settings such as email notifications, dark mode preferences, email, and password updates.
     """
-    print(f"Accessing settings view for user {request.user.username}.") 
-    settings = get_object_or_404(UserSettings, user=request.user)
-    if request.method == 'POST':
-        email_notifications = request.POST.get('email_notifications') == 'on'
-        dark_mode = request.POST.get('dark_mode') == 'on'
-        settings.email_notifications = email_notifications
-        settings.dark_mode = dark_mode
-        settings.save()
-        print(f"Settings updated for user {request.user.username}.") 
-        messages.success(request, 'Your settings have been updated.')
-        return redirect('settings')
-    return render(request, 'users/settings.html', {'settings': settings})
+    # Fetch or create user settings
+    settings, created = UserSettings.objects.get_or_create(user=request.user)
 
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_settings':
+            # Handle Email Notifications and Dark Mode together
+            email_notifications = request.POST.get('email_notifications') == 'on'
+            dark_mode = request.POST.get('dark_mode') == 'on'
+            settings.email_notifications = email_notifications
+            settings.dark_mode = dark_mode
+            settings.save()
+            messages.success(request, 'Settings have been updated.')
+
+        elif action == 'change_email':
+            new_email = request.POST.get('email')
+            if new_email and new_email != request.user.email:
+                try:
+                    # Check if the email is already taken
+                    request.user.email = new_email
+                    request.user.save()
+                    messages.success(request, 'Your email has been updated.')
+                except ValidationError:
+                    messages.error(request, 'The email address is already in use.')
+
+        # Handle Password Change
+        if action == 'change_password'and password_form.validate_on_submit():
+            password_form = PasswordChangeForm(user=request.user, data=request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                update_session_auth_hash(request, password_form.user)  # Important to keep the user logged in
+                messages.success(request, 'Your password has been updated.')
+
+        return redirect('profile')  # Redirect to the profile page after saving settings
+
+    # Password Change Form
+    password_form = PasswordChangeForm(user=request.user)
+
+    return render(request, 'users/settings.html', {
+        'settings': settings,
+        'password_form': password_form
+    })
 
 # User Blog Interaction View
 @login_required
@@ -333,3 +446,79 @@ def user_blog_interactions(request):
     interactions = UserBlogInteraction.objects.filter(user=request.user)
     print(f"Found {interactions.count()} interactions for user {request.user.username}.") 
     return render(request, 'users/blog_interactions.html', {'interactions': interactions})
+
+def recent_activities(request):
+    """
+    Displays a list of recent activities of the logged-in user.
+    """
+    # Example: You can retrieve activities from a model if you have one, or simulate recent activities.
+    activities = [
+        {"activity": "Created a new blog post.", "timestamp": "2024-12-20 10:00 AM"},
+        {"activity": "Commented on a blog post.", "timestamp": "2024-12-19 03:30 PM"},
+        {"activity": "Updated profile picture.", "timestamp": "2024-12-18 08:45 AM"},
+    ]
+
+    context = {
+        'activities': activities
+    }
+
+    return render(request, 'users/recent_activities.html', context)
+
+def my_blogs(request):
+    """
+    Displays all the blogs posted by the logged-in user.
+    """
+    # Retrieve blogs by the logged-in user
+    blogs = Blog.objects.filter(author=request.user)
+
+    context = {
+        'blogs': blogs
+    }
+
+    return render(request, 'users/my_blogs.html', context)
+
+def notifications(request):
+    """
+    Displays the notifications for the logged-in user.
+    """
+    # Retrieve notifications for the logged-in user, ordered by creation date
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+
+    context = {
+        'notifications': notifications
+    }
+
+    return render(request, 'users/notifications.html', context)
+
+@login_required
+def change_email(request):
+    # Your email change logic here, such as sending a verification email
+    if request.method == "POST":
+        # Process the email change request
+        new_email = request.POST['email']
+        # Logic to verify email and send token can go here
+        send_mail("Change your email", "Verification token", "no-reply@example.com", [new_email])
+        return redirect('settings')  # Redirect back to settings after email change request
+    
+    return render(request, 'users/change_email.html')
+
+@login_required
+def manage_subscription(request):
+    if request.method == "POST":
+        subscription_type = request.POST.get('subscription_type')
+        if subscription_type == 'monthly':
+            duration = timedelta(days=30)
+        elif subscription_type == 'annual':
+            duration = timedelta(days=365)
+        else:
+            duration = None
+
+        if duration:
+            profile = request.user.profile
+            profile.subscription_type = subscription_type
+            profile.subscription_end = now() + duration
+            profile.save()
+            # Payment processing logic here
+            return redirect('home')  # Redirect to your desired page
+    
+    return render(request, 'manage_subscription.html')
