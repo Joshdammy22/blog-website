@@ -77,17 +77,49 @@ class UserLoginForm(AuthenticationForm):
         return cleaned_data
 
 
+from django import forms
+from django.contrib.auth.models import User
+from .models import Profile
+from django.core.exceptions import ValidationError
+
+# User Update Form
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username']  # Only include username for user model
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'input-field'}),
+        }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exclude(id=self.instance.id).exists():
+            raise ValidationError("This username is already taken. Please choose a different one.")
+        return username
 
 
+# Profile Update Form
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['first_name', 'last_name', 'bio', 'location', 'birth_date', 'profile_picture']
+        fields = ['first_name', 'last_name', 'bio', 'birth_date', 'profile_picture']
         widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'location': forms.TextInput(attrs={'class': 'form-control'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'first_name': forms.TextInput(attrs={'class': 'input-field'}),
+            'last_name': forms.TextInput(attrs={'class': 'input-field'}),
+            'bio': forms.Textarea(attrs={'class': 'textarea-field', 'rows': 3}),
+            'birth_date': forms.DateInput(attrs={'class': 'input-field', 'type': 'date'}),
         }
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if Profile.objects.filter(first_name=first_name).exclude(id=self.instance.id).exists():
+            raise ValidationError("This first name is already taken. Please choose a different one.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if Profile.objects.filter(last_name=last_name).exclude(id=self.instance.id).exists():
+            raise ValidationError("This last name is already taken. Please choose a different one.")
+        return last_name
 
     def clean_birth_date(self):
         birth_date = self.cleaned_data.get('birth_date')
@@ -96,29 +128,6 @@ class ProfileUpdateForm(forms.ModelForm):
         return birth_date
 
 
-class UserUpdateForm(forms.ModelForm):
-    email = forms.EmailField(required=True)
-
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise ValidationError("This email is already in use by another account.")
-        return email
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
-            raise ValidationError("This username is already in use.")
-        return username
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):

@@ -5,20 +5,20 @@ from django.contrib import messages
 from .forms import *
 from .models import *
 from blog.models import *
-from django.utils.timezone import now
 from .utils import *
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.conf import settings
-import requests
 from http.client import RemoteDisconnected
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.utils.timezone import now
-from datetime import timedelta
+from datetime import datetime, timedelta
+
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -287,6 +287,79 @@ def resend_otp(request):
     return redirect('verify_otp')  # Redirect to OTP verification page
 
 
+
+# Password Reset
+ATTEMPT_LIMIT = 3
+RATE_LIMIT_DURATION = 3600  # 1 hour in seconds
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+
+        # Check rate limit
+        cache_key = f"password_reset_attempts:{email}"
+        last_attempt_time_key = f"{cache_key}:last_attempt_time"
+        
+        # Get current attempts and the last attempt time
+        attempts = cache.get(cache_key, 0)
+        last_attempt_time = cache.get(last_attempt_time_key)
+
+        if last_attempt_time:
+            elapsed_time = datetime.now() - last_attempt_time
+            if elapsed_time.total_seconds() > RATE_LIMIT_DURATION:
+                # Reset attempts after the rate limit period has passed
+                attempts = 0
+                cache.set(cache_key, attempts, RATE_LIMIT_DURATION)
+        
+        if attempts >= ATTEMPT_LIMIT:
+            # Calculate remaining time
+            remaining_time = RATE_LIMIT_DURATION - elapsed_time.total_seconds()
+            minutes, seconds = divmod(int(remaining_time), 60)
+            messages.error(request, f"Too many attempts. Please try again in {minutes} minutes and {seconds} seconds.")
+            return redirect('password_reset')
+
+        # Check if the email exists in the database
+        try:
+            user = User.objects.get(email=email)
+            # Generate the reset URL and send the email if user exists
+            reset_url = generate_reset_token_and_url(user, request)
+            send_reset_email(user, reset_url)
+        except User.DoesNotExist:
+            # If user doesn't exist, still inform the user but apply rate limiting
+            messages.success(request, "If an account with this email exists, a password reset email has been sent.")
+
+        # Increment attempts and store the time of the last attempt
+        cache.set(cache_key, attempts + 1, RATE_LIMIT_DURATION)
+        cache.set(last_attempt_time_key, datetime.now(), RATE_LIMIT_DURATION)
+
+        return redirect('password_reset')
+
+    return render(request, 'users/password_reset_request.html')
+
+
+
+def password_reset_confirm(request, uidb64, token):
+    user = confirm_reset_token(uidb64, token)
+    if not user:
+        messages.error(request, "Invalid or expired token.")
+        return redirect('password_reset')
+
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+
+        if password == password_confirm:
+            # Reset and save the new password
+            user.password = make_password(password)
+            user.save()
+            messages.success(request, "Password reset successful! You can now log in.")
+            return redirect('login')
+        else:
+            messages.error(request, "Passwords do not match.")
+
+    return render(request, 'users/password_reset_confirm.html')
+
+
 # User Logout View
 @login_required
 def logout_view(request):
@@ -328,6 +401,14 @@ def profile_view(request):
     return render(request, 'users/profile.html', context)
 
 
+def author_profile_view(request, username):
+    print(f"Accessing profile view for author -> {username}.")
+    # Fetch the user by username
+    author = get_object_or_404(User, username=username)
+    profile = author.profile  # Assuming a OneToOne relation exists with Profile
+    return render(request, 'profile.html', {'profile': profile, 'author': author})
+
+
 def email_verification_request(request):
     """
     Handles the process of re-sending the verification email if the user's email is not verified.
@@ -362,29 +443,51 @@ def edit_profile(request):
     """
     Allows the user to edit their profile information.
     """
-    profile = get_object_or_404(Profile, user=request.user)
+    user = request.user
+    profile = get_object_or_404(Profile, user=user)
 
     # Debugging print statement for when the profile is fetched
-    print(f"Accessing edit profile for user {request.user.username}. Profile: {profile}")
+    print(f"Accessing edit profile for user {user.username}. Profile: {profile}")
 
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+        # Create the forms with POST data
+        user_form = UserUpdateForm(request.POST, instance=user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
         
         # Print form data for debugging
-        print(f"Form data: {request.POST}")
+        print(f"User form data: {request.POST}")
         print(f"Form files: {request.FILES}")
         
-        if form.is_valid():
-            form.save()
+        # Check if both forms are valid
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()  # Save changes to the User model (including username)
+            profile_form.save()  # Save changes to the Profile model
+            
             # Print success message for debugging
-            print(f"Profile updated for user {request.user.username}.")
+            print(f"Profile updated for user {user.username}.")
+            messages.success(request, 'Your profile has been updated successfully!')
             return redirect('profile')  # Redirect to the profile page after saving
         else:
-            # Print form validation errors
-            print(f"Form is invalid. Errors: {form.errors}")
+            # Add error messages
+            if user_form.errors:
+                for field, error_list in user_form.errors.items():
+                    for error in error_list:
+                        messages.error(request, f"{field.capitalize()}: {error}")
+            if profile_form.errors:
+                for field, error_list in profile_form.errors.items():
+                    for error in error_list:
+                        messages.error(request, f"{field.capitalize()}: {error}")
+
+            # Print form validation errors for debugging
+            print(f"User form errors: {user_form.errors}")
+            print(f"Profile form errors: {profile_form.errors}")
     else:
-        form = ProfileUpdateForm(instance=profile)
-    return render(request, 'users/edit_profile.html', {'form': form})
+        # Initialize forms with current user and profile data
+        user_form = UserUpdateForm(instance=user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    return render(request, 'users/edit_profile.html', {'user_form': user_form, 'profile_form': profile_form})
+
 
 
 @login_required
@@ -476,6 +579,7 @@ def my_blogs(request):
     }
 
     return render(request, 'users/my_blogs.html', context)
+
 
 def notifications(request):
     """

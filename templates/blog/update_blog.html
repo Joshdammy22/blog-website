@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Blog{% endblock %}
+{% block title %}Update Blog{% endblock %}
 
 {% block contents %}
 <style>
@@ -235,10 +235,11 @@
 </style>
 
 <div class="create-blog-container">
-    <h1>Create a New Blog Post</h1>
+    <h1>Update Blog</h1>
     <form method="post" enctype="multipart/form-data" class="needs-validation">
         {% csrf_token %}
         
+        <!-- Title Field -->
         <div class="mb-3">
             {{ form.title.label_tag }}
             {{ form.title }}
@@ -250,10 +251,13 @@
         <!-- Content Field -->
         <div class="form-group">
             <label for="{{ form.content.id_for_label }}">Content</label>
-            <textarea id="content-editor" name="content" rows="1" class="form-control">{{ form.content.data }}</textarea>
-            {{ form.content.errors }}
+            <textarea id="content-editor" name="content" rows="10" class="form-control">{{ form.content.value }}</textarea>
+            {% for error in form.content.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
         
+        <!-- Blog Image Field -->
         <div class="mb-3">
             {{ form.blog_image.label_tag }}
             {{ form.blog_image }}
@@ -263,53 +267,60 @@
         </div>
         
         <!-- Categories Field -->
-<div class="mb-3">
-    <label for="id_categories" class="form-label">Categories (Select up to 3)</label>
-    <input type="text" class="form-control" id="categories-input" placeholder="Select Categories" readonly>
-    <div id="categories-collapse" class="collapse">
-        <div class="form-check-container mt-2" data-max-select="3">
-            {% for category in form.categories.field.queryset %}
-            <div class="form-check">
-                <input class="form-check-input category-checkbox" type="checkbox" 
-                    id="category_{{ category.id }}" 
-                    name="categories" value="{{ category.id }}">
-                <label class="form-check-label" for="category_{{ category.id }}">
-                    {{ category.name }}
-                </label>
+        <div class="mb-3">
+            <label for="id_categories" class="form-label">Categories (Select up to 3)</label>
+            <input type="text" class="form-control" id="categories-input" placeholder="Select Categories" readonly>
+            <div id="categories-collapse" class="collapse">
+                <div class="form-check-container mt-2" data-max-select="3">
+                    {% for category in form.categories.field.queryset %}
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input category-checkbox" 
+                            type="checkbox" 
+                            id="category_{{ category.id }}" 
+                            name="categories" 
+                            value="{{ category.id }}" 
+                            {% if category.id in selected_categories %}checked{% endif %}>
+                        <label class="form-check-label" for="category_{{ category.id }}">
+                            {{ category.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
+            {% for error in form.categories.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
         </div>
-    </div>
-    {% for error in form.categories.errors %}
-    <div class="invalid-feedback d-block">{{ error }}</div>
-    {% endfor %}
-</div>
-
-<!-- Tags Field -->
-<div class="mb-3">
-    <label for="id_tags" class="form-label">Tags (Select up to 5)</label>
-    <input type="text" class="form-control" id="tags-input" placeholder="Select Tags" readonly>
-    <div id="tags-collapse" class="collapse">
-        <div class="form-check-container mt-2" data-max-select="5">
-            {% for tag in form.tags.field.queryset %}
-            <div class="form-check">
-                <input class="form-check-input tag-checkbox" type="checkbox" 
-                    id="tag_{{ tag.id }}" 
-                    name="tags" value="{{ tag.id }}">
-                <label class="form-check-label" for="tag_{{ tag.id }}">
-                    {{ tag.name }}
-                </label>
+    
+        <!-- Tags Field -->
+        <div class="mb-3">
+            <label for="id_tags" class="form-label">Tags (Select up to 5)</label>
+            <input type="text" class="form-control" id="tags-input" placeholder="Select Tags" readonly>
+            <div id="tags-collapse" class="collapse">
+                <div class="form-check-container mt-2" data-max-select="5">
+                    {% for tag in form.tags.field.queryset %}
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input tag-checkbox" 
+                            type="checkbox" 
+                            id="tag_{{ tag.id }}" 
+                            name="tags" 
+                            value="{{ tag.id }}" 
+                            {% if tag.id in selected_tags %}checked{% endif %}>
+                        <label class="form-check-label" for="tag_{{ tag.id }}">
+                            {{ tag.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
+            {% for error in form.tags.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
         </div>
-    </div>
-    {% for error in form.tags.errors %}
-    <div class="invalid-feedback d-block">{{ error }}</div>
-    {% endfor %}
-</div>
-
-
-        
+    
+        <!-- Status Field -->
         <div class="mb-3">
             {{ form.status.label_tag }}
             {{ form.status }}
@@ -317,60 +328,65 @@
             <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
         </div>
-
-        <button type="submit" class="btn btn-primary">Create Blog</button>
+    
+        <button type="submit" class="btn btn-primary">Update Blog</button>
     </form>
+    
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        // Categories Input Toggle
         const categoriesInput = document.getElementById("categories-input");
         const categoriesCollapse = document.getElementById("categories-collapse");
-        
-        const tagsInput = document.getElementById("tags-input");
-        const tagsCollapse = document.getElementById("tags-collapse");
-
         categoriesInput.addEventListener("click", () => {
             categoriesCollapse.classList.toggle("show");
         });
-
+    
+        // Tags Input Toggle
+        const tagsInput = document.getElementById("tags-input");
+        const tagsCollapse = document.getElementById("tags-collapse");
         tagsInput.addEventListener("click", () => {
             tagsCollapse.classList.toggle("show");
         });
-    });
-</script>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
+    
+        // Checkbox Limit Logic
         const formCheckContainers = document.querySelectorAll('.form-check-container');
-
+    
         formCheckContainers.forEach(container => {
             const maxSelect = parseInt(container.getAttribute('data-max-select'), 10);
             const checkboxes = container.querySelectorAll('.form-check-input');
-
+    
+            const updateCheckboxState = () => {
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    
+                // If max selected, disable unchecked checkboxes
+                if (checkedCount >= maxSelect) {
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                            cb.parentElement.classList.add('disabled');
+                        }
+                    });
+                } else {
+                    // Re-enable all checkboxes if below the limit
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                        cb.parentElement.classList.remove('disabled');
+                    });
+                }
+            };
+    
+            // Initialize state based on pre-selected checkboxes
+            updateCheckboxState();
+    
+            // Add event listeners to checkboxes
             checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-
-                    // Disable unchecked checkboxes if max limit is reached
-                    if (checkedCount >= maxSelect) {
-                        checkboxes.forEach(cb => {
-                            if (!cb.checked) {
-                                cb.disabled = true;
-                                cb.parentElement.classList.add('disabled');
-                            }
-                        });
-                    } else {
-                        // Re-enable all checkboxes if under the limit
-                        checkboxes.forEach(cb => {
-                            cb.disabled = false;
-                            cb.parentElement.classList.remove('disabled');
-                        });
-                    }
-                });
+                checkbox.addEventListener('change', updateCheckboxState);
             });
         });
     });
+    
 </script>
 
 

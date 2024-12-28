@@ -4,9 +4,65 @@
 {{ blog.title }}
 {% endblock title %}
 
+<body data-slug="{{ slug }}">
 {% block contents %}
 <style>
   /* Blog Detail */
+  /* Hide the read count by default */
+.read-count {
+    display: none;
+}
+
+/* Show the read count when the 'show-read-count' class is added */
+.read-count.show-read-count {
+    display: flex; /* Use flex or any other layout method you prefer */
+    align-items: center;
+}
+
+.read-count i {
+    margin-right: 5px; /* Add space between the icon and the number */
+}
+
+/* Optional: Style the read count */
+.read-count span {
+    font-size: 1rem; /* Adjust size as needed */
+    font-weight: bold;
+}
+
+  /* Style for the author's profile image */
+  .author-profile-image {
+    width: 40px;            /* Adjust size as needed */
+    height: 40px;
+    border-radius: 50%;     /* Make the image round */
+    object-fit: cover;      /* Maintain aspect ratio and cover the circle */
+    margin-right: 10px;     /* Add spacing between image and text */
+  }
+  
+  /* Align the author's name and publication date */
+  .author-details {
+    display: flex;
+    flex-direction: column; /* Stack name and date vertically */
+  }
+  
+  .author-name {
+    font-weight: bold;
+    margin-bottom: 2px;     /* Adjust spacing between name and date */
+  }
+  
+  .publish-date {
+    font-size: 0.9em;       /* Slightly smaller font for the date */
+    color: #666;            /* Lighter color for the date */
+  }
+  
+  /* Flex container for the author link */
+  .author-link {
+    display: flex;
+    align-items: center;    /* Align image and text vertically */
+    text-decoration: none;  /* Remove underline from the link */
+    color: inherit;         /* Inherit text color */
+  }
+  
+
   .reactions {
     margin-top: 20px;
   }
@@ -25,7 +81,12 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  
+  /* Styling when the button is clicked */
+.reaction-btn.clicked {
+    background-color: #007bff; /* You can change this to any color you prefer */
+    color: white;
+    border-color: #007bff;
+}
   .reaction-btn:hover {
     background-color: #e5e7eb;
   }
@@ -68,43 +129,100 @@
     margin-bottom: 40px;
   }
 
-  .comments-section {
-    margin-top: 50px;
-  }
+  /* General Styling */
+.comments-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
 
-  .comments-title {
-    font-size: 2rem;
-    font-weight: bold;
+.comments-title {
+    font-size: 24px;
     margin-bottom: 20px;
-  }
+}
+
+/* Comment Item */
+.comment-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Comment Author */
+.comment-author {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Comment Author's Profile Image */
+.author-profile-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Author Details */
+.author-details {
+    margin-left: 10px;
+}
+
+.author-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.comment-date {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* Comment Content */
+.comment-body {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Empty Comment Message */
+.comment-empty {
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .comment-item {
+        padding: 10px;
+    }
+
+    .author-profile-image {
+        width: 35px;
+        height: 35px;
+    }
+
+    .author-name {
+        font-size: 14px;
+    }
+
+    .comment-date {
+        font-size: 11px;
+    }
+}
+
 
   .comments-list {
     list-style: none;
     padding: 0;
     margin: 0;
-  }
-
-  .comment-item {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f9f9f9;
-    border-radius: 5px;
-  }
-
-  .comment-author {
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 1.1rem;
-  }
-
-  .comment-date {
-    font-size: 0.9rem;
-    color: #999;
-  }
-
-  .comment-body {
-    font-size: 1.2rem;
-    color: #333;
   }
 
   .comment-form {
@@ -133,6 +251,135 @@
   .btn-primary:hover {
     background-color: #0056b3;
   }
+  /* Read Count */
+  .read-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: #777;
+  }
+
+  .icon {
+    font-size: 1rem;
+  }
+
+  /* Blog Actions (Update & Delete Buttons) */
+  .blog-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .btn-update {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .btn-update:hover {
+    background-color: #45a049;
+  }
+
+  .btn-delete {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .btn-delete:hover {
+    background-color: #e53935;
+  }
+  /* Modal Overlay */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    cursor: pointer;
+}
+
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Modal Content */
+.modal-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.modal-content h2 {
+    margin-bottom: 10px;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 8px;
+    text-transform: uppercase;
+    margin-top:3px;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+
+}
+
+.btn-secondary {
+    background: #bdc3c7;
+    color: white;
+}
+
+/* Checkbox Toggle Logic */
+#delete-modal-toggle:checked ~ .modal-overlay {
+    display: block;
+}
+
+#delete-modal-toggle:checked ~ .modal {
+    display: block;
+}
+
 </style>
 
 <section class="blog-detail" aria-label="blog detail">
@@ -140,11 +387,38 @@
     <article class="blog-post">
       <header class="post-header text-center">
         <h1 class="post-title">{{ blog.title }}</h1>
-        <p class="post-meta">
-          Published on {{ blog.created_at|date:"F d, Y" }} by 
-          <a href="#" class="author-link">{{ blog.author.get_full_name|default:blog.author.username }}</a>
-        </p>
+        <div class="post-meta">
+          <a href="{% url 'profile' blog.author.username %}" class="author-link">
+            <!-- Author's profile image -->
+            {% if blog.author.profile.profile_picture %}
+              <img src="{{ blog.author.profile.profile_picture.url }}" alt="{{ blog.author.username }}" class="author-profile-image">
+            {% else %}
+              <img src="/static/images/user.jpg" alt="{{ blog.author.username }}" class="author-profile-image">
+            {% endif %}
+            <div class="author-details">
+              <span class="author-name">{{ blog.author.get_full_name|default:blog.author.username }}</span>
+              <span class="publish-date">Published on {{ blog.created_at|date:"F d, Y" }}</span>
+            </div>
+          </a>
+          <!-- Read Count -->
+          {% if blog.read_count > 10 %}
+            <div class="read-count">
+              <span class="icon">👁</span>
+              <span>{{ blog.read_count }} reads</span>
+            </div>
+          {% endif %}
+          <!-- Update and Delete Buttons -->
+          {% if request.user == blog.author %}
+            <div class="blog-actions">
+              <a href="{% url 'update_blog' blog.slug %}" class="btn btn-update">Update</a>
+              <a href="{% url 'delete_blog' blog.slug %}" class="btn btn-delete">Delete</a>
+            </div>
+          {% endif %}
+        </div>
+        
       </header>
+      
+      
 
       <figure class="post-banner">
         {% if blog.blog_image %}
@@ -162,75 +436,183 @@
     <section class="reactions">
       <h3 class="h3">React to this post:</h3>
       <div class="reaction-buttons">
-        <button class="reaction-btn" data-reaction="like">👍 Like</button>
-        <button class="reaction-btn" data-reaction="love">❤️ Love</button>
-        <button class="reaction-btn" data-reaction="haha">😂 Haha</button>
-        <button class="reaction-btn" data-reaction="wow">😮 Wow</button>
-        <button class="reaction-btn" data-reaction="sad">😢 Sad</button>
-        <button class="reaction-btn" data-reaction="angry">😡 Angry</button>
-        <button class="reaction-btn" data-reaction="applaud">👏 Applaud</button>  <!-- Added applaud reaction -->
+          <button class="reaction-btn {% if current_reaction == 'like' %}clicked{% endif %}" data-reaction="like">
+              👍 Like <span id="like-count">{{ reactions_summary.like }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'love' %}clicked{% endif %}" data-reaction="love">
+              ❤️ Love <span id="love-count">{{ reactions_summary.love }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'haha' %}clicked{% endif %}" data-reaction="haha">
+              😂 Haha <span id="haha-count">{{ reactions_summary.haha }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'wow' %}clicked{% endif %}" data-reaction="wow">
+              😮 Wow <span id="wow-count">{{ reactions_summary.wow }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'applaud' %}clicked{% endif %}" data-reaction="applaud">
+              👏 Applaud <span id="applaud-count">{{ reactions_summary.applaud }}</span>
+          </button>
       </div>
-      <div class="reaction-counts">
-        {% comment %} <span id="like-count">👍 {{ reactions_summary.like }}</span>
-        <span id="love-count">❤️ {{ reactions_summary.love }}</span>
-        <span id="haha-count">😂 {{ reactions_summary.haha }}</span>
-        <span id="wow-count">😮 {{ reactions_summary.wow }}</span>
-        <span id="sad-count">😢 {{ reactions_summary.sad }}</span>
-        <span id="angry-count">😡 {{ reactions_summary.angry }}</span>
-        <span id="applaud-count">👏 {{ reactions_summary.applaud }}</span> <!-- Added applaud count -->
-      </div>  {% endcomment %}
     </section>
 
     <section class="comments-section">
-      <h2 class="comments-title">Comments</h2>
+      <h2 class="comments-title text-center">Comments</h2>
       <ul class="comments-list">
-        {% for comment in blog.comments.all %}
+          {% for comment in blog.comments.all %}
           <li class="comment-item">
-            <div class="comment-author">
-              <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
-              <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
-            </div>
-            <p class="comment-body">{{ comment.content }}</p>
+              <div class="comment-author d-flex align-items-center justify-content-center">
+                  <!-- Commentor's profile image -->
+                  {% if comment.author.profile.profile_picture %}
+                      <img src="{{ comment.author.profile.profile_picture.url }}" alt="{{ comment.author.username }}" class="author-profile-image">
+                  {% else %}
+                      <img src="/static/images/default-avatar.jpg" alt="{{ comment.author.username }}" class="author-profile-image">
+                  {% endif %}
+                  <div class="author-details ms-3">
+                      <strong class="author-name">{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                      <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
+                  </div>
+              </div>
+              <p class="comment-body">{{ comment.content }}</p>
           </li>
-        {% empty %}
+          {% empty %}
           <li class="comment-empty">No comments yet. Be the first to comment!</li>
-        {% endfor %}
+          {% endfor %}
       </ul>
-
       <form method="post" class="comment-form">
         {% csrf_token %}
         <textarea name="comment_body" rows="5" class="form-textarea" placeholder="Write a comment..." required></textarea>
         <button type="submit" class="btn btn-primary">Post Comment</button>
       </form>
-    </section>
+  </section>
+  
   </div>
 </section>
 
+
+
+
 <script>
-  document.querySelectorAll('.reaction-btn').forEach(button => {
-    button.addEventListener('click', function () {
-      const reactionType = this.dataset.reaction;
-      fetch("{% url 'react_to_blog' blog.slug %}", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}',
-        },
-        body: JSON.stringify({ reaction_type: reactionType }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.reaction_summary) {
-            document.getElementById('like-count').innerText = `👍 ${data.reaction_summary.like}`;
-            document.getElementById('love-count').innerText = `❤️ ${data.reaction_summary.love}`;
-            document.getElementById('haha-count').innerText = `😂 ${data.reaction_summary.haha}`;
-            document.getElementById('wow-count').innerText = `😮 ${data.reaction_summary.wow}`;
-            document.getElementById('sad-count').innerText = `😢 ${data.reaction_summary.sad}`;
-            document.getElementById('angry-count').innerText = `😡 ${data.reaction_summary.angry}`;
-            document.getElementById('applaud-count').innerText = `👏 ${data.reaction_summary.applaud}`;
-          }
-        });
+  document.addEventListener("DOMContentLoaded", function () {
+    const deleteButton = document.getElementById("delete-blog-btn");
+    const modal = document.querySelector(".modal");
+    const closeModalButtons = modal.querySelectorAll("[data-close-modal]");
+
+    deleteButton.addEventListener("click", function () {
+      modal.classList.add("show");
+    });
+
+    closeModalButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        modal.classList.remove("show");
+      });
     });
   });
 </script>
+
+
+<script>
+  // Ensure csrfToken is available (if not set elsewhere in the script)
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  // Get the blog slug from a data attribute or JavaScript variable
+  const slug = document.body.dataset.slug; // Assuming you set the slug in the HTML body element as a data attribute
+
+  // Select all reaction buttons
+  const reactionButtons = document.querySelectorAll('.reaction-btn');
+
+  // Add event listener for each button
+  reactionButtons.forEach(button => {
+      button.addEventListener('click', function() {
+          const reactionType = this.dataset.reaction;
+
+          // Remove the 'clicked' class from all buttons
+          reactionButtons.forEach(btn => btn.classList.remove('clicked'));
+
+          // Add the 'clicked' class to the clicked button
+          this.classList.add('clicked');
+
+          // Send the reaction to the backend
+          fetch(`/blogs/blog/${slug}/save_reaction/`, {  // Updated URL to match Django pattern
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrfToken,  // Ensure CSRF token is included for security
+              },
+              body: JSON.stringify({
+                  reaction: reactionType,  // Send the reaction directly
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.reaction_summary) {
+                  // Update the UI with the new reaction counts
+                  console.log('Reaction saved successfully:', data.reaction_summary);
+
+                  // Optionally, update the reaction counts on the page (if available)
+                  Object.keys(data.reaction_summary).forEach(reaction => {
+                      const countElement = document.querySelector(`#${reaction}-count`);
+                      if (countElement) {
+                          countElement.textContent = data.reaction_summary[reaction];
+                      }
+                  });
+
+                  // Ensure the correct button remains clicked on page reload
+                  if (data.current_reaction) {
+                      reactionButtons.forEach(btn => {
+                          if (btn.dataset.reaction === data.current_reaction) {
+                              btn.classList.add('clicked');
+                          }
+                      });
+                  }
+              } else {
+                  console.error('Error saving reaction:', data.error);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+          });
+      });
+  });
+</script>
+
+
+
+
+
+<script>
+  // Detect if the user has scrolled to the bottom or spent enough time on the page
+  let timeSpent = 0;
+  const viewTimeThreshold = 10000; // 10 seconds
+  const scrollThreshold = 80; // percentage of page scrolled to the bottom
+  let readLogged = false;
+  
+  // Track time spent on the page
+  setInterval(() => {
+    if (!readLogged) {
+      timeSpent += 1000; // Increment every second
+      if (timeSpent >= viewTimeThreshold || window.scrollY + window.innerHeight >= document.documentElement.scrollHeight * (scrollThreshold / 100)) {
+        // Send an AJAX request to register the read count
+        fetch(`mark-as-read/{{ blog.slug }}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,  // Ensure CSRF token is included
+          },
+          body: JSON.stringify({}),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Blog post read count updated");
+          }
+        })
+        .catch(error => console.error("Error updating read count:", error));
+  
+        readLogged = true;  // Prevent further updates
+      }
+    }
+  }, 1000);  // Check every second
+  </script>
+  
 {% endblock %}
+
+

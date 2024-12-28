@@ -5,6 +5,17 @@ from django.conf import settings
 from itsdangerous import URLSafeTimedSerializer, BadData, SignatureExpired
 import logging
 from users.models import OTP
+from django.contrib.auth.models import User
+from datetime import timedelta
+from django.utils import timezone
+import random
+import string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+
 # Logger setup
 logger = logging.getLogger(__name__)
 
@@ -70,15 +81,7 @@ def generate_verification_message(user, verification_url):
     {settings.APP_NAME}
     """
 
-
-import random
-import string
-from datetime import timedelta
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import OTP
-
+#Functions for handling user login with token verification
 def generate_otp(length=6):
     """Generate a random OTP with the specified length (default 6 digits)."""
     otp = ''.join(random.choices(string.digits, k=length))  # Generate a random 6-digit OTP
@@ -110,3 +113,63 @@ def create_and_send_otp(user):
     )
 
     return otp
+
+
+from datetime import timedelta
+from django.utils.timezone import now
+
+TOKEN_EXPIRATION_MINUTES = 10  # Set token expiration time
+
+
+def generate_reset_token_and_url(user, request):
+    """
+    Generate a token and password reset URL for a given user.
+    """
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_url = request.build_absolute_uri(f'/users/password_reset_confirm/{uid}/{token}/')
+    return reset_url
+
+
+def send_reset_email(user, reset_url):
+    """
+    Send the password reset email to the user.
+    """
+    subject = 'Password Reset Request'
+    message = (
+        f"Hi {user.username},\n\n"
+        f"We received a request to reset your password. You can reset it using the link below:\n"
+        f"{reset_url}\n\n"
+        f"This link expires in 10 minutes!\n\n"
+        f"If you didn't request this, please ignore this email."
+    )
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+    )
+
+
+def confirm_reset_token(uidb64, token):
+    """
+    Confirm if a password reset token is valid for a given user and check its expiration time.
+    """
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+        # Validate the token
+        if default_token_generator.check_token(user, token):
+            # Extract the timestamp from the token
+            timestamp = default_token_generator._num_seconds(default_token_generator.today())
+            token_created_time = timedelta(seconds=timestamp)
+            current_time = timedelta(seconds=int(now().timestamp()))
+            
+            # Check if the token is within the expiration time
+            if (current_time - token_created_time) <= timedelta(minutes=TOKEN_EXPIRATION_MINUTES):
+                return user
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        pass
+
+    return None

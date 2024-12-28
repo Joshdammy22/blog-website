@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ author.username }}'s Profile{% endblock title %}
+
+{% block contents %}
+<style>
+    /* General Styling */
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f5f7;
+        font-family: Arial, sans-serif;
+    }
+    
+    /* Main Container */
+    .main-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    /* Profile Card */
+    .profile-card {
+        background: #fff;
+        padding: 30px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .profile-picture img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin: 0 auto;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .profile-details {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+    }
+    
+    .profile-details li {
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #6c757d;
+    }
+    
+    .bio {
+        font-size: 14px;
+        color: #495057;
+        margin-bottom: 20px;
+    }
+    /* Style for Follow/Unfollow Buttons */
+    .btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    /* Follow button */
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    /* Unfollow button */
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    /* Disabled Button (for self-follow) */
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary:hover {
+        background-color: #6c757d;
+    }
+
+    /* Responsive Adjustments */
+    @media screen and (max-width: 768px) {
+        .profile-card {
+            max-width: 90%;
+        }
+    }
+    </style>
+    
+
+    <section class="main-container">
+        <!-- Profile Card -->
+        <div class="card profile-card">
+            <div class="card-header">
+                <div class="profile-picture">
+                    {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ author.username }}'s Profile Picture" class="img-cover rounded-circle">
+                    {% else %}
+                    <img src="{% static 'images/user.jpg' %}" alt="Default Profile Picture" class="img-cover rounded-circle">
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <h1 class="h2 text-center">{{ profile.first_name }} {{ profile.last_name }}</h1>
+                <p class="bio text-center">{{ profile.bio|default:"This user has not added a bio yet." }}</p>
+                <ul class="profile-details">
+                    <li><strong>Username:</strong> {{ author.username }}</li>
+                    <li><strong>Email:</strong> {{ author.email }}</li>
+                    {% if profile.phone_number %}
+                    <li><strong>Phone:</strong> {{ profile.phone_number }}</li>
+                    {% endif %}
+                    {% if profile.website %}
+                    <li><strong>Website:</strong> <a href="{{ profile.website }}" target="_blank" class="profile-link">{{ profile.website }}</a></li>
+                    {% endif %}
+                    {% if profile.location %}
+                    <li><strong>Location:</strong> {{ profile.location }}</li>
+                    {% endif %}
+                    {% if profile.birth_date %}
+                    <li><strong>Date of Birth:</strong> {{ profile.birth_date }}</li>
+                    {% endif %}
+                </ul>
+    
+                <div class="text-center">
+                    <p>{{ author.followers.count }} followers</p>
+                </div>
+    
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'toggle_follow' author.id %}" class="text-center">
+                    {% csrf_token %}
+                    {% if user == author %}
+                    
+                    {% elif user in author.followers.all %}
+                    <button type="submit" class="btn btn-danger">Unfollow</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-primary">Follow</button>
+                    {% endif %}
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    
+    
+
+  
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %} 

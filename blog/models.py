@@ -45,6 +45,9 @@ class Blog(models.Model):
     featured = models.BooleanField(default=False)
     categories = models.ManyToManyField(Category, related_name='blogs', blank=True)
 
+    #field to track read count
+    read_count = models.PositiveIntegerField(default=0)
+
     class Meta:
         verbose_name = "Blog"
         verbose_name_plural = "Blogs"
@@ -74,19 +77,17 @@ REACTION_CHOICES = (
     ('love', 'Love'),
     ('haha', 'Haha'),
     ('wow', 'Wow'),
-    ('sad', 'Sad'),
-    ('angry', 'Angry'),
     ('applaud', 'Applaud'),
 )
 
 class Reaction(models.Model):
     blog = models.ForeignKey(Blog, related_name='reactions', on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Change OneToOneField to ForeignKey
     reaction_type = models.CharField(max_length=20, choices=REACTION_CHOICES)
     created_at = models.DateTimeField(default=now)
 
     class Meta:
-        unique_together = ('blog', 'user')  # Prevent a user from reacting multiple times to the same blog
+        unique_together = ('blog', 'user')  # Ensure a user can only react once to the same blog
         verbose_name = "Reaction"
         verbose_name_plural = "Reactions"
 
@@ -94,15 +95,17 @@ class Reaction(models.Model):
         return f"{self.user.username} reacted {self.reaction_type} to {self.blog.title}"
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
+        is_new = self.pk is None  # Check if this is a new Reaction
+        super().save(*args, **kwargs)  # Save the Reaction instance
         if is_new and self.blog.author != self.user:
+            # Ensure Notification is created only once per new Reaction
             Notification.objects.create(
                 recipient=self.blog.author,
                 sender=self.user,
-                notification_type='reaction',
+                notification_type='reaction',  # Type as defined in Notification.NOTIFICATION_TYPES
                 blog=self.blog
             )
+
 
 # Comment model
 class Comment(models.Model):

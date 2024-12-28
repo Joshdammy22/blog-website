@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ blog.title }}?{% endblock title %}
+
+{% block contents %}
+<style>
+    /* Container styling */
+    .container {
+        padding-top: 1rem; /* Reduced padding even more to move the card higher */
+    }
+
+    /* Center content vertically and horizontally */
+    .row.justify-content-center {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Align items at the top */
+    }
+
+    /* Card Styling */
+    .card {
+        border: none;
+        border-radius: 10px; /* Increased border radius for a rounded effect */
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); /* Deeper shadow for better effect */
+        margin-top: 2rem; /* Further reduce the margin-top to move the card higher */
+    }
+
+    /* Card Header */
+    .card-header {
+        font-size: 1.5rem; /* Increased font size */
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 1.5rem; /* Increased padding */
+        background-color: #dc3545; /* Ensure consistency with button */
+        color: white;
+    }
+
+    /* Card Body */
+    .card-body {
+        padding: 3rem; /* Increased padding */
+        font-size: 1.1rem; /* Increased font size */
+        color: #555;
+    }
+
+    /* Buttons Styling */
+    .btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        margin: 0.75rem;
+    }
+
+    /* Flexbox for inline buttons */
+    .btn-container {
+        display: flex;
+        justify-content: center;
+        gap: 1rem; /* Space between buttons */
+    }
+
+    /* Button Hover Effects */
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Danger Button */
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    /* Secondary Button */
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    /* Text Alignment */
+    .text-center {
+        text-align: center;
+    }
+
+    /* Make buttons bigger and more prominent */
+    .btn {
+        font-weight: 600;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h4>Confirm Delete</h4>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete the blog titled "<strong>{{ blog.title }}</strong>"?</p>
+                    <form method="POST" action="{% url 'delete_blog' blog.slug %}">
+                        {% csrf_token %}
+                        <div class="btn-container">
+                            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                            <a href="{% url 'blog_detail' blog.slug %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

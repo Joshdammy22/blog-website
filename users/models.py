@@ -79,7 +79,7 @@ class UserSettings(models.Model):
 class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     otp = models.CharField(max_length=6)
-    expires_at = models.DateTimeField()
+    #expires_at = models.DateTimeField()
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)  # Add this field to track OTP generation time
 
