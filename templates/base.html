@@ -31,7 +31,41 @@
    <!--- Google material icon -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <style>
-    /* Base Flash Message Styling (Gold Border) */
+    /* Animate the bell icon when there are unread notifications */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+    
+    #notificationIcon.active {
+      animation: shake 0.5s ease-in-out infinite;
+    }
+    
+    #notificationBadge {
+      position: absolute;
+      top: 18px; /* Moves the badge upward */
+      right: 79px; /* Moves the badge closer to the icon horizontally */
+      transform: translate(0, 0); /* Remove additional offset */
+      z-index: 10; /* Keeps the badge above other elements */
+      font-size: 12px; /* Adjusts text size */
+      padding: 2px 6px; /* Controls badge size */
+      background-color: #dc3545; /* Red color */
+      color: #fff; /* White text */
+      border-radius: 50%; /* Circular shape */
+      display: inline-block !important; /* Ensures visibility */
+    }
+    
+      
+    
+    
+    #notificationBadge.show {
+      display: inline-block; /* Show the badge when there are unread notifications */
+    }
+    
+    
 .flash-message {
     display: none; /* Hidden by default, will be shown via JS */
     position: fixed;
@@ -186,7 +220,6 @@
 
     <nav class="navbar" data-navbar>
       <ul class="navbar-list">
-        <!-- Conditionally rendered links based on user authentication status -->
         {% if user.is_authenticated %}
           <button class="search-btn" aria-label="search" data-search-toggler>
             <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
@@ -198,16 +231,22 @@
           <li class="navbar-item">
             <a href="{% url 'blogs' %}" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
           </li>
-          {% comment %} <li class="navbar-item">
-            <a href="#" class="btn" data-nav-link>Membership</a>
-          </li>           {% endcomment %}
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
+          <!-- Notification Icon (redirect to notifications page on click) -->
+          <li class="navbar-item position-relative">
+            <a href="{% url 'notifications' %}" class="navbar-link">
+              <i class="fas fa-bell" id="notificationIcon" aria-hidden="true"></i>
+              <span class="badge bg-danger text-white rounded-circle position-absolute" 
+                    id="notificationBadge" 
+                    style="display: none; font-size: 12px;">0</span>
+            </a>
+          </li>
+
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
           </li>
-          <div class="wrapper">
         {% else %}
           <li class="navbar-item">
             <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
@@ -221,6 +260,8 @@
         {% endif %}
       </ul>
     </nav>
+    
+    
       <button class="nav-toggle-btn" aria-label="toggle menu" data-nav-toggler>
         <span class="span one"></span>
         <span class="span two"></span>
@@ -331,6 +372,134 @@
 
   <!-- Custom JS link -->
   <script src="{% static 'js/script.js' %}" defer></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const notificationBadge = document.getElementById("notificationBadge");
+      const notificationIcon = document.getElementById("notificationIcon");
+  
+      // Fetch notifications periodically
+      function fetchNotifications() {
+        fetch("/users/notifications/api") // Ensure the correct API URL
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            updateNotifications(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching notifications:", error);
+          });
+      }
+  
+      // Update badge, icon animation, and dropdown with new notifications
+      function updateNotifications(data) {
+        const unseenCount = data.unseen_count || 0;
+  
+        notificationBadge.textContent = unseenCount;
+  
+        if (unseenCount > 0) {
+          notificationBadge.style.display = "inline-block";
+          notificationIcon.classList.add("active");
+        } else {
+          notificationBadge.style.display = "inline-block"; // Always show the badge
+          notificationBadge.textContent = "0"; // Display "0" if no unread notifications
+          notificationIcon.classList.remove("active");
+        }
+      }
+  
+      // Initial fetch
+      fetchNotifications();
+  
+      // Poll every 30 seconds
+      setInterval(fetchNotifications, 30000);
+    });
+  </script>
+  
+
+  {% comment %} <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const notificationBadge = document.getElementById("notificationBadge");
+      const notificationIcon = document.getElementById("notificationIcon");
+      const notificationDropdown = document.querySelector(".dropdown-menu");
+      const noNotifications = document.getElementById("noNotifications");
+  
+      // Fetch notifications periodically
+      function fetchNotifications() {
+        fetch("users/notifications/api") 
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            updateNotifications(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching notifications:", error);
+          });
+      }
+  
+      // Update badge, icon animation, and dropdown with new notifications
+      function updateNotifications(data) {
+        const unseenCount = data.unseen_count || 0;
+        const notifications = data.notifications || [];
+  
+        // Update badge
+        if (unseenCount > 0) {
+          notificationBadge.style.display = "inline-block"; // Show the badge
+          notificationBadge.textContent = unseenCount; // Display the unread count
+  
+          // Add animation to the notification icon
+          notificationIcon.classList.add("active");
+        } else {
+          notificationBadge.style.display = "none"; // Hide the badge
+          notificationIcon.classList.remove("active"); // Remove animation from the icon
+        }
+  
+        // Update dropdown
+        notificationDropdown.innerHTML = ""; // Clear existing notifications
+        if (notifications.length > 0) {
+          notifications.forEach((notification) => {
+            const listItem = document.createElement("li");
+            listItem.className = "dropdown-item";
+            listItem.innerHTML = `<a href="${notification.url}" class="text-dark">${notification.message}</a>`;
+            notificationDropdown.appendChild(listItem);
+          });
+        } else {
+          // Show "No new notifications" only if there are no notifications
+          noNotifications.style.display = notifications.length > 0 ? "none" : "block";
+        }
+      }
+  
+      // Initial fetch
+      fetchNotifications();
+  
+      // Poll every 30 seconds
+      setInterval(fetchNotifications, 30000); // Adjust interval as needed
+  
+      // Mark notifications as read
+      document.getElementById("notificationDropdown").addEventListener("click", function () {
+        fetch("users/notifications/mark-as-read/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          },
+        }).then((response) => {
+          if (response.ok) {
+            notificationBadge.style.display = "none"; // Hide badge after marking as read
+          }
+        });
+      });
+    });
+  </script> {% endcomment %}
+  
+  
+  
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {

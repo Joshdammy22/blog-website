@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
-
+from .util import *
 import logging
 
 
@@ -127,12 +127,21 @@ def blog_detail(request, slug):
         comment_body = request.POST.get('comment_body')
         if comment_body:
             print(f"DEBUG: Creating comment for blog '{blog.title}' by user '{request.user.username}'")
-            Comment.objects.create(
+            
+            # Create and save the comment
+            comment = Comment.objects.create(
                 blog=blog,
                 author=request.user,
                 content=comment_body,
             )
             print("DEBUG: Comment created successfully")
+
+            # Get the author of the blog (recipient of the comment notification)
+            recipient = blog.author  # Assuming the blog's author should receive the notification
+
+            # Create a comment notification for the blog author
+            create_comment_notification(sender=request.user, recipient=recipient, comment=comment)
+
             return HttpResponseRedirect(request.path_info)  # Redirect to the same page
 
     # Get reaction summary counts for each reaction type
@@ -154,6 +163,8 @@ def blog_detail(request, slug):
         'current_reaction': current_reaction,
         'slug': slug,
     })
+
+from .util import create_reaction_notification
 
 REACTION_CHOICES = ['like', 'love', 'haha', 'wow', 'applaud']
 
@@ -194,6 +205,10 @@ def save_reaction(request, slug):
                 # If the user hasn't reacted yet, create a new reaction
                 blog.reactions.create(user=request.user, reaction_type=reaction_type)
                 print(f"DEBUG: Created new reaction '{reaction_type}' for user {request.user.username}")
+
+                # Create a notification for the blog's author (recipient)
+                create_reaction_notification(sender=request.user, recipient=blog.author, blog=blog)
+                print(f"DEBUG: Notification created for user {blog.author.username}")
 
             # Get updated reaction counts
             reactions_summary = {reaction: blog.reactions.filter(reaction_type=reaction).count() for reaction in REACTION_CHOICES}
@@ -242,23 +257,23 @@ def add_comment(request, slug):
     return render(request, 'blog/add_comment.html', {'form': form, 'blog': blog})
 
 
-# View to follow a user
-@login_required
-def follow_user(request, user_id):
-    followee = get_object_or_404(User, id=user_id)
-    if request.user != followee:
-        existing_follow = Follow.objects.filter(follower=request.user, followee=followee)
-        if existing_follow.exists():
-            existing_follow.delete()  # Unfollow the user
-        else:
-            Follow.objects.create(follower=request.user, followee=followee)  # Follow the user
-            # Create a notification when the user follows another user
-            Notification.objects.create(
-                recipient=followee,
-                sender=request.user,
-                notification_type='follow'
-            )
-    return redirect('profile', user_id=user_id)  # Redirect to the followed user's profile
+# # View to follow a user
+# @login_required
+# def follow_user(request, user_id):
+#     followee = get_object_or_404(User, id=user_id)
+#     if request.user != followee:
+#         existing_follow = Follow.objects.filter(follower=request.user, followee=followee)
+#         if existing_follow.exists():
+#             existing_follow.delete()  # Unfollow the user
+#         else:
+#             Follow.objects.create(follower=request.user, followee=followee)  # Follow the user
+#             # Create a notification when the user follows another user
+#             Notification.objects.create(
+#                 recipient=followee,
+#                 sender=request.user,
+#                 notification_type='follow'
+#             )
+#     return redirect('profile', user_id=user_id)  # Redirect to the followed user's profile
 
 
 # View to list all notifications for the current user
@@ -286,19 +301,23 @@ def mark_all_as_read(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)  # Handle invalid request method
 
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.models import User
-from .models import Follow
+from .util import create_follow_notification, delete_follow_notification
 
 @login_required
 def toggle_follow(request, user_id):
     author = get_object_or_404(User, id=user_id)
     
-    if request.user != author:  # Prevent users from following themselves
+    if request.user != author:  # Prevent users from following/unfollowing themselves
         follow, created = Follow.objects.get_or_create(follower=request.user, followee=author)
-        if not created:
-            # If the follow already exists, it means the user wants to unfollow
+        if created:
+            # If the follow was just created, send a notification to the followed user
+            create_follow_notification(sender=request.user, recipient=author)
+            print(f"DEBUG: Follow notification created for user {author.username}")
+        else:
+            # If the follow already exists, delete it (unfollow)
             follow.delete()
+            print(f"DEBUG: User {request.user.username} unfollowed {author.username}")
+            delete_follow_notification(sender=request.user, recipient=author)  # Notify about unfollow
     
-    return redirect('profile', user_id=user_id)
+    return redirect('profile', username=author.username)
+

@@ -401,12 +401,24 @@ def profile_view(request):
     return render(request, 'users/profile.html', context)
 
 
+from blog.models import Follow
+
+@login_required
 def author_profile_view(request, username):
     print(f"Accessing profile view for author -> {username}.")
     # Fetch the user by username
     author = get_object_or_404(User, username=username)
     profile = author.profile  # Assuming a OneToOne relation exists with Profile
-    return render(request, 'profile.html', {'profile': profile, 'author': author})
+
+    # Check if the current user follows the author
+    is_following = Follow.objects.filter(follower=request.user, followee=author).exists()
+
+    return render(request, 'profile.html', {
+        'profile': profile,
+        'author': author,
+        'is_following': is_following,  # Pass the follow status
+    })
+
 
 
 def email_verification_request(request):
@@ -581,18 +593,62 @@ def my_blogs(request):
     return render(request, 'users/my_blogs.html', context)
 
 
+# users/views.py
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from blog.models import Notification
+
+@login_required
+def fetch_notifications(request):
+    # Fetch unseen notifications for the logged-in user
+    unseen_notifications = Notification.objects.filter(recipient=request.user, is_read=False)
+    notifications_data = [
+        {
+            "message": f"{n.sender.username} {n.get_notification_type_display()} your post: {n.blog.title}",
+            "url": f"/blog/{n.blog.id}" if n.blog else "/",
+            "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        for n in unseen_notifications
+    ]
+    
+    return JsonResponse({
+        "unseen_count": unseen_notifications.count(),
+        "notifications": notifications_data
+    })
+
+@login_required
+def mark_notifications_as_read(request):
+    if request.method == "POST":
+        # Mark all unseen notifications as read
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+
+
+
+@login_required
 def notifications(request):
     """
-    Displays the notifications for the logged-in user.
+    Displays the notifications for the logged-in user and marks them as read.
     """
     # Retrieve notifications for the logged-in user, ordered by creation date
     notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+
+    # Mark unread notifications as read
+    Notification.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).update(is_read=True)
 
     context = {
         'notifications': notifications
     }
 
     return render(request, 'users/notifications.html', context)
+
+
 
 @login_required
 def change_email(request):

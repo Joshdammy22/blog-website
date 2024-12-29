@@ -51,6 +51,10 @@ urlpatterns = [
 
     path('change-email/', views.change_email, name='change_email'), 
 
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/api', views.fetch_notifications, name='fetch_notifications'),
+    path('notifications/mark-as-read/', views.mark_notifications_as_read, name='mark_notifications_as_read'),
+
     
 ]
 

@@ -464,7 +464,7 @@
                   {% if comment.author.profile.profile_picture %}
                       <img src="{{ comment.author.profile.profile_picture.url }}" alt="{{ comment.author.username }}" class="author-profile-image">
                   {% else %}
-                      <img src="/static/images/default-avatar.jpg" alt="{{ comment.author.username }}" class="author-profile-image">
+                      <img src="/static/images/user.jpg" alt="{{ comment.author.username }}" class="author-profile-image">
                   {% endif %}
                   <div class="author-details ms-3">
                       <strong class="author-name">{{ comment.author.get_full_name|default:comment.author.username }}</strong>

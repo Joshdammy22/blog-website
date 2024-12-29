@@ -3,28 +3,81 @@
 {% block title %} Notifications {% endblock %}
 
 {% block contents %}
+<style>
+    /* Styling the notifications section */
+.notifications {
+  margin-top: 50px;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+/* Notification item styles */
+.notification-item {
+  background-color: #f8f9fa;
+}
+
+.notification-item.read {
+  background-color: #e9ecef;
+}
+
+.notification-item.unread {
+  background-color: #ffffff;
+  border-left: 5px solid #007bff;
+}
+
+.notification-content {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.timestamp {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.no-notifications {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+</style>
 <section class="section notifications">
     <div class="container">
-        <h2 class="h2 section-title">Notifications</h2>
+        <h2 class="h2 section-title text-center">Notifications</h2>
         
-        <ul class="notifications-list">
+        <ul class="notifications-list list-unstyled">
             {% for notification in notifications %}
-            <li class="notification-item {% if notification.is_read %}read{% else %}unread{% endif %}">
-                <p>
-                    {% if notification.notification_type == 'reaction' %}
-                        {{ notification.sender.username }} reacted to your blog post "{{ notification.blog.title }}" with a "{{ notification.comment.content }}" reaction.
-                    {% elif notification.notification_type == 'comment' %}
-                        {{ notification.sender.username }} commented on your blog post "{{ notification.blog.title }}": "{{ notification.comment.content }}"
-                    {% elif notification.notification_type == 'follow' %}
-                        {{ notification.sender.username }} started following you.
-                    {% endif %}
-                </p>
-                <span class="timestamp">{{ notification.created_at|date:"F j, Y, g:i a" }}</span>
+            <li class="notification-item {% if notification.is_read %}read{% else %}unread{% endif %} mb-3">
+                <div class="notification-content p-3 border rounded shadow-sm">
+                    <p>
+                        {% if notification.notification_type == 'reaction' %}
+                            <strong>{{ notification.sender.username }}</strong> reacted to your blog post <em>"{{ notification.blog.title }}"</em> with a <strong>"{{ notification.comment.content }}"</strong> reaction.
+                        {% elif notification.notification_type == 'comment' %}
+                            <strong>{{ notification.sender.username }}</strong> commented on your blog post <em>"{{ notification.blog.title }}"</em>: <blockquote>"{{ notification.comment.content }}"</blockquote>
+                        {% elif notification.notification_type == 'follow' %}
+                            <strong>{{ notification.sender.username }}</strong> started following you.
+                        {% endif %}
+                    </p>
+                    <span class="timestamp text-muted d-block mt-2">{{ notification.created_at|date:"F j, Y, g:i a" }}</span>
+                </div>
             </li>
             {% empty %}
-            <p>You have no notifications at this time.</p>
+            <li class="no-notifications text-center">
+                <p class="text-muted">You have no notifications at this time.</p>
+            </li>
             {% endfor %}
         </ul>
     </div>
 </section>
 {% endblock %}
+
+
+{% block footer %}
+{% endblock %} 
