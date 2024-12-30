@@ -6,6 +6,42 @@
 
 {% block contents %}
 <style>
+    .requirement {
+        color: #777;
+        font-size: 14px;
+    }
+    
+    .requirement.success {
+        color: green;
+    }
+    
+    .requirement.failure {
+        color: red;
+    }
+    
+    .password-input {
+        width: 100%;
+        padding: 8px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .input-group-append {
+        position: absolute;
+        right: 10px;
+        top: 8px;
+    }
+    
+    .fas.fa-eye {
+        cursor: pointer;
+    }
+    
+    #password-requirements {
+        margin-top: 10px;
+    }
+    
     .text-muted {
         color: gray;
     }
@@ -274,12 +310,6 @@
                     <i class="fas fa-eye toggle-password" id="toggle-password1"></i>
                 </div>
             </div>
-            <div id="password-requirements">
-                <p id="min-length" class="text-muted">✔ Minimum 8 characters</p>
-                <p id="no-common-password" class="text-muted">✔ Avoid common passwords</p>
-                <p id="not-numeric" class="text-muted">✔ Must not be entirely numeric</p>
-                <p id="user-attributes" class="text-muted">✔ Cannot be similar to user attributes</p>
-            </div>
             {% if form.password1.errors %}
                 <div class="error-message">
                     {% for error in form.password1.errors %}
@@ -370,58 +400,7 @@
         togglePassword('id_password2', 'toggle-password2');
     });
 </script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const passwordInput = document.querySelector("#id_password1");
-        const minLength = document.getElementById("min-length");
-        const noCommonPassword = document.getElementById("no-common-password");
-        const notNumeric = document.getElementById("not-numeric");
-        const userAttributes = document.getElementById("user-attributes");
-    
-        passwordInput.addEventListener("input", () => {
-            const password = passwordInput.value;
-    
-            // Minimum Length Validator
-            if (password.length >= 8) {
-                minLength.classList.remove("text-muted");
-                minLength.classList.add("text-success");
-            } else {
-                minLength.classList.add("text-muted");
-                minLength.classList.remove("text-success");
-            }
-    
-            // Avoid Common Passwords (Placeholder: Implement server-side check for this)
-            if (password !== "123456" && password !== "password") { // Simplistic example
-                noCommonPassword.classList.remove("text-muted");
-                noCommonPassword.classList.add("text-success");
-            } else {
-                noCommonPassword.classList.add("text-muted");
-                noCommonPassword.classList.remove("text-success");
-            }
-    
-            // Not Entirely Numeric
-            if (!/^\d+$/.test(password)) {
-                notNumeric.classList.remove("text-muted");
-                notNumeric.classList.add("text-success");
-            } else {
-                notNumeric.classList.add("text-muted");
-                notNumeric.classList.remove("text-success");
-            }
-    
-            // User Attributes Similarity Check (Placeholder: Implement server-side check for this)
-            // For this example, assume the username is "admin".
-            const username = "admin";
-            if (!password.includes(username)) {
-                userAttributes.classList.remove("text-muted");
-                userAttributes.classList.add("text-success");
-            } else {
-                userAttributes.classList.add("text-muted");
-                userAttributes.classList.remove("text-success");
-            }
-        });
-    });
-    
-</script>
+
 {% endblock %}
 
 

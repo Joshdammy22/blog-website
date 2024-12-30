@@ -12,6 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from .util import *
 import logging
+from .util import create_follow_notification, delete_follow_notification
 
 
 # Set up logging
@@ -291,17 +292,6 @@ def mark_as_read(request, notification_id):
     notification.save()  # Mark the notification as read
     return redirect('notification_list')  # Redirect back to the notification list page
 
-
-# View to mark all notifications as read
-@login_required
-def mark_all_as_read(request):
-    if request.method == 'POST':
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)  # Mark all as read
-        return JsonResponse({'success': True, 'message': 'All notifications marked as read.'})
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)  # Handle invalid request method
-
-
-from .util import create_follow_notification, delete_follow_notification
 
 @login_required
 def toggle_follow(request, user_id):

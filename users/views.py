@@ -18,9 +18,9 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.utils.timezone import now
 from datetime import datetime, timedelta
+from urllib.error import URLError
 
-
-# Logger setup
+# Create logger
 logger = logging.getLogger(__name__)
 
 def register(request):
@@ -64,11 +64,33 @@ def register(request):
             # Form is invalid: handle field-specific errors
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field.capitalize()}: {error}")
+                    # Customize error messages based on field and error
+                    if field == 'password1':
+                        if "too common" in error:
+                            messages.error(request, "This password is too common. Please choose a stronger one.")
+                        elif "too short" in error:
+                            messages.error(request, "The password must be at least 8 characters long.")
+                        elif "entirely numeric" in error:
+                            messages.error(request, "The password cannot be entirely numeric. Please add letters.")
+                        elif "password is too similar" in error:
+                            messages.error(request, "This password is too similar to your username or personal information.")
+                        else:
+                            messages.error(request, f"Password: {error}")
+                    elif field == 'password2':
+                        if "match" in error:
+                            messages.error(request, "The passwords do not match. Please ensure both passwords are the same.")
+                    elif field == 'username':
+                        messages.error(request, f"Username: {error}")
+                    elif field == 'email':
+                        messages.error(request, f"Email: {error}")
+                    else:
+                        messages.error(request, f"{field.capitalize()}: {error}")
     else:
         form = UserRegisterForm()
 
     return render(request, 'users/register.html', {'form': form})
+
+
 
 def email_sent(request, email):
     """
@@ -76,7 +98,6 @@ def email_sent(request, email):
     Provides an option to resend the verification email.
     """
     return render(request, "users/email_sent.html", {'email': email})
-
 
 def email_verification(request, token):
     """
@@ -90,7 +111,7 @@ def email_verification(request, token):
 
     try:
         # Fetch the user by email
-        user = User.objects.get(email=email)
+        user = CustomUser.objects.get(email=email)
 
         # Update the user's active status and profile email verification status
         user.is_active = True
@@ -103,7 +124,7 @@ def email_verification(request, token):
 
         messages.success(request, 'Your email has been verified successfully. You can now log in.')
         return redirect('login')
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         messages.error(request, 'User not found. Please register again.')
         return redirect('register')
     except Exception as e:
@@ -111,7 +132,6 @@ def email_verification(request, token):
         logger.error(f"Unexpected error during email verification: {e}")
         messages.error(request, 'An unexpected error occurred. Please try again later.')
         return redirect('register')
-    
 
 def resend_verification_email(request, email):
     """
@@ -146,10 +166,10 @@ def resend_verification_email(request, email):
     cache.set(cache_key, resend_data, timeout=int(time_window.total_seconds()))
 
     try:
-        user = User.objects.get(email=email, is_active=False)
+        user = CustomUser.objects.get(email=email, is_active=False)
         send_verification_email(request, user)
         messages.success(request, f"A new verification email has been sent to {email}.")
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         messages.error(request, "No inactive account found with this email address.")
     except Exception as e:
         logger.error(f"Error resending verification email: {e}")
@@ -158,8 +178,9 @@ def resend_verification_email(request, email):
     return redirect("email_sent", email=email)
 
 
-# User Login View
+# User login
 def login_view(request):
+    # Redirect if the user is already authenticated
     if request.user.is_authenticated:
         messages.info(request, 'You are already logged in. Redirecting to home...')
         return redirect('home')
@@ -167,85 +188,100 @@ def login_view(request):
     form = UserLoginForm(data=request.POST or None)
 
     if request.method == "POST":
-        try:
-            if form.is_valid():
+        if form.is_valid():
+            try:
                 username_or_email = form.cleaned_data.get('username')
                 password = form.cleaned_data.get('password')
+                print(f"Username or Email: {username_or_email}")
 
-                try:
-                    user_obj = User.objects.get(
-                        Q(username=username_or_email) | Q(email=username_or_email)
-                    )
+                # Authenticate the user using the custom authentication logic
+                user = authenticate(request, username=username_or_email, password=password)
 
-                    if not user_obj.is_active:
-                        messages.error(request, 'Your email is unverified. Please check your inbox and verify your email.')
+                if user:
+                    # Check if the user is active
+                    if not user.is_active:
+                        messages.error(request, 'Your account is inactive. Please verify your email or contact support.')
                         return redirect('login')
+                    
+                    # Generate OTP and send it
+                    otp = create_and_send_otp(user)
 
-                    user = authenticate(request, username=user_obj.username, password=password)
-                    if user:
-                        login(request, user)
-                        messages.success(request, 'You have successfully logged in!')
+                    # Save user ID in session for OTP verification
+                    request.session['temp_user_id'] = user.id
 
-                        # Generate OTP and send it
-                        otp = create_and_send_otp(user)
-
-                        # Redirect to OTP verification page
-                        return redirect('verify_otp')  # Redirect to OTP verification page
-
-                    else:
-                        messages.error(request, 'Invalid login details. Please check your username/email and password.')
-                        return redirect('login')
-
-                except User.DoesNotExist:
-                    messages.error(request, 'User not found. Please check your credentials or sign up.')
-                    return redirect('login')
-
-            else:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, error)
-
-        except Exception as e:
-            messages.error(request, 'An unexpected error occurred. Please try again.')
-            print(f"Unexpected error during login: {e}")
-            return redirect('login')
-
-        except RemoteDisconnected:
-            print("RemoteDisconnected error occurred during login.")
-            messages.error(
-                request,
-                "There was a connection issue while processing your request. Please try again."
-            )
-            return redirect('login')
+                    messages.info(request, 'An OTP has been sent to your email. Please verify.')
+                    return redirect('verify_otp')
+                else:
+                    messages.error(request, 'Invalid login details. Please check your username/email and password.')
+            except ValidationError as e:
+                # Handle validation errors raised from the form or authentication process
+                print(f"Validation error: {e}")
+                messages.error(request, str(e))
+            except RemoteDisconnected:
+                print("RemoteDisconnected error occurred during login.")
+                messages.error(
+                    request,
+                    "There was a connection issue while processing your request. Please try again."
+                )
+            except Exception as e:
+                # Catch any other unexpected errors
+                print(f"Unexpected error: {e}")
+                messages.error(request, 'An unexpected error occurred. Please try again later.')
+            except URLError as e:
+                messages.error(request, "A network error occurred. Please check your connection and try again.")
+                print(f"URLError: {e}")
+        else:
+            # Handle form errors and display them to the user
+            print(f"Form is not valid. Errors: {form.errors}")  # Debugging purposes
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
 
     return render(request, 'users/login.html', {'form': form})
 
+
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.backends import ModelBackend
+
 def verify_otp(request):
     """Handle OTP verification"""
-    print("Accessing OTP verification view...")  
+    print("Accessing OTP verification view...")
+
+    if 'temp_user_id' not in request.session:
+        messages.error(request, 'You must be logged in first.')
+        return redirect('login')
+
+    user_id = request.session.get('temp_user_id')
+    user = CustomUser.objects.get(id=user_id)
+
+    # Explicitly set the backend to CustomUserAuthenticationBackend
+    user.backend = 'users.backends.CustomUserAuthenticationBackend'
+
     if request.method == 'POST':
         otp_code = request.POST.get('otp')
         try:
-            otp = OTP.objects.get(user=request.user, otp=otp_code, is_verified=False)
-            print(f"Attempting OTP verification for {request.user.username}.")  
+            otp = OTP.objects.get(user=user, otp=otp_code, is_verified=False)
+            print(f"Attempting OTP verification for {user.username}.")
 
-            # Check if OTP has expired
             if otp.is_expired():
                 messages.error(request, 'OTP has expired. Please request a new one.')
-                print(f"OTP expired for {request.user.username}.")  
-                return redirect('login')  # Optionally, redirect to login page or retry OTP
+                print(f"OTP expired for {user.username}.")
+                return redirect('login')
 
             otp.is_verified = True
             otp.save()
-            messages.success(request, 'OTP verified successfully.')
-            print(f"OTP verified successfully for {request.user.username}.")  
-            return redirect('home')  # Redirect to home or dashboard after successful verification
+
+            # Login the user after successful OTP verification
+            login(request, user)
+            messages.success(request, 'OTP verified successfully. You are now logged in!')
+            print(f"OTP verified successfully for {user.username}.")
+            return redirect('home')
 
         except OTP.DoesNotExist:
             messages.error(request, 'Invalid OTP')
-            print(f"Invalid OTP entered for {request.user.username}.")  
+            print(f"Invalid OTP entered for {user.username}.")
 
-    print("Passing OTP verification form to template.")  
+    print("Passing OTP verification form to template.")
     return render(request, 'users/verify_otp.html')
 
 def resend_otp(request):
@@ -287,11 +323,12 @@ def resend_otp(request):
     return redirect('verify_otp')  # Redirect to OTP verification page
 
 
+# Password reset request view with rate-limiting
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
-# Password Reset
 ATTEMPT_LIMIT = 3
 RATE_LIMIT_DURATION = 3600  # 1 hour in seconds
-
 def password_reset_request(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -326,7 +363,9 @@ def password_reset_request(request):
             send_reset_email(user, reset_url)
         except User.DoesNotExist:
             # If user doesn't exist, still inform the user but apply rate limiting
-            messages.success(request, "If an account with this email exists, a password reset email has been sent.")
+            pass
+
+        messages.success(request, "If an account with this email exists, a password reset email has been sent.")
 
         # Increment attempts and store the time of the last attempt
         cache.set(cache_key, attempts + 1, RATE_LIMIT_DURATION)
@@ -336,28 +375,122 @@ def password_reset_request(request):
 
     return render(request, 'users/password_reset_request.html')
 
-
-
+# Password reset confirm view
 def password_reset_confirm(request, uidb64, token):
     user = confirm_reset_token(uidb64, token)
+    
     if not user:
         messages.error(request, "Invalid or expired token.")
         return redirect('password_reset')
-
+    
     if request.method == 'POST':
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-
-        if password == password_confirm:
-            # Reset and save the new password
-            user.password = make_password(password)
+        form = CustomPasswordChangeForm(user=user, data=request.POST)
+        if form.is_valid():
+            # Save the new password
+            user.password = make_password(form.cleaned_data['new_password1'])
             user.save()
             messages.success(request, "Password reset successful! You can now log in.")
             return redirect('login')
         else:
-            messages.error(request, "Passwords do not match.")
+            # If form is invalid, handle field-specific errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == 'new_password1':
+                        if "too common" in error:
+                            messages.error(request, "This password is too common. Please choose a stronger one.")
+                        elif "too short" in error:
+                            messages.error(request, "The password must be at least 8 characters long.")
+                        elif "entirely numeric" in error:
+                            messages.error(request, "The password cannot be entirely numeric. Please add letters.")
+                        elif "password is too similar" in error:
+                            messages.error(request, "This password is too similar to your username or personal information.")
+                        else:
+                            messages.error(request, f"New Password: {error}")
+                    elif field == 'new_password2':
+                        if "match" in error:
+                            messages.error(request, "The passwords do not match. Please ensure both passwords are the same.")
+                    else:
+                        messages.error(request, f"{field.capitalize()}: {error}")
+    else:
+        # Initialize the form if it's a GET request
+        form = CustomPasswordChangeForm(user=user)
 
-    return render(request, 'users/password_reset_confirm.html')
+    return render(request, 'users/password_reset_confirm.html', {'form': form})
+
+# from django.contrib.auth import get_user_model
+
+# User = get_user_model()
+
+# # Password Reset
+# ATTEMPT_LIMIT = 3
+# RATE_LIMIT_DURATION = 3600  # 1 hour in seconds
+
+# def password_reset_request(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+
+#         # Check rate limit
+#         cache_key = f"password_reset_attempts:{email}"
+#         last_attempt_time_key = f"{cache_key}:last_attempt_time"
+        
+#         # Get current attempts and the last attempt time
+#         attempts = cache.get(cache_key, 0)
+#         last_attempt_time = cache.get(last_attempt_time_key)
+
+#         if last_attempt_time:
+#             elapsed_time = datetime.now() - last_attempt_time
+#             if elapsed_time.total_seconds() > RATE_LIMIT_DURATION:
+#                 # Reset attempts after the rate limit period has passed
+#                 attempts = 0
+#                 cache.set(cache_key, attempts, RATE_LIMIT_DURATION)
+        
+#         if attempts >= ATTEMPT_LIMIT:
+#             # Calculate remaining time
+#             remaining_time = RATE_LIMIT_DURATION - elapsed_time.total_seconds()
+#             minutes, seconds = divmod(int(remaining_time), 60)
+#             messages.error(request, f"Too many attempts. Please try again in {minutes} minutes and {seconds} seconds.")
+#             return redirect('password_reset')
+
+#         # Check if the email exists in the database
+#         try:
+#             user = User.objects.get(email=email)
+#             # Generate the reset URL and send the email if user exists
+#             reset_url = generate_reset_token_and_url(user, request)
+#             send_reset_email(user, reset_url)
+#         except User.DoesNotExist:
+#             # If user doesn't exist, still inform the user but apply rate limiting
+#             pass
+
+#         messages.success(request, "If an account with this email exists, a password reset email has been sent.")
+
+#         # Increment attempts and store the time of the last attempt
+#         cache.set(cache_key, attempts + 1, RATE_LIMIT_DURATION)
+#         cache.set(last_attempt_time_key, datetime.now(), RATE_LIMIT_DURATION)
+
+#         return redirect('password_reset')
+
+#     return render(request, 'users/password_reset_request.html')
+
+# def password_reset_confirm(request, uidb64, token):
+#     user = confirm_reset_token(uidb64, token)
+#     if not user:
+#         messages.error(request, "Invalid or expired token.")
+#         return redirect('password_reset')
+
+#     if request.method == 'POST':
+#         password = request.POST.get('password')
+#         password_confirm = request.POST.get('password_confirm')
+
+#         if password == password_confirm:
+#             # Reset and save the new password
+#             user.password = make_password(password)
+#             user.save()
+#             messages.success(request, "Password reset successful! You can now log in.")
+#             return redirect('login')
+#         else:
+#             messages.error(request, "Passwords do not match.")
+
+#     return render(request, 'users/password_reset_confirm.html')
 
 
 # User Logout View
@@ -400,8 +533,6 @@ def profile_view(request):
 
     return render(request, 'users/profile.html', context)
 
-
-from blog.models import Follow
 
 @login_required
 def author_profile_view(request, username):

@@ -57,155 +57,141 @@
       border-radius: 50%; /* Circular shape */
       display: inline-block !important; /* Ensures visibility */
     }
-    
-      
-    
-    
     #notificationBadge.show {
       display: inline-block; /* Show the badge when there are unread notifications */
     }
-    
-    
-.flash-message {
-    display: none; /* Hidden by default, will be shown via JS */
-    position: fixed;
-    top: 60px; /* Adjust to place it below the navbar */
-    left: 35%; /* Center horizontally */
-    transform: translateX(-50%);
-    max-width: 400px;
-    width: 90%; /* Makes it responsive on smaller screens */
-    z-index: 1050;
-    display: flex;
-    justify-content: space-between;
-    padding: 0;
-    align-items: center;
-    border-radius: 8px;
-    border: 2px solid #d4af37; /* Gold color border */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
-    background-color: #fffdf0; /* Slight off-white tint */
-}
-
-/* Message Content */
-.flash-message .flash-message-content {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.flash-message p {
-    margin: 0;
-    flex-grow: 1;
-    font-size: 16px; /* Ensures text remains readable */
-    text-align: left;
-}
-
-/* Close Button Styling */
-.flash-message .close-btn {
-    background: transparent;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0 10px;
-    color: inherit;
-    transition: color 0.3s ease, transform 0.2s ease;
-}
-
-.flash-message .close-btn:hover {
-    color: #333;
-    transform: scale(1.1);
-    opacity: 0.8;
-}
-
-/* Message-Specific Styling */
-.flash-message-success {
-    background-color: #d4edda; /* Success */
-    color: #155724;
-    border-color: #28a745;
-    padding: 7px;
-}
-
-.flash-message-error {
-    background-color: #f8d7da; /* Error */
-    color: #721c24;
-    border-color: #dc3545;
-    padding: 7px;
-}
-
-.flash-message-warning {
-    background-color: #fff3cd; /* Warning */
-    color: #856404;
-    border-color: #ffc107;
-    padding: 7px;
-}
-
-.flash-message-info {
-    background-color: #d1ecf1; /* Info */
-    color: #0c5460;
-    border-color: #17a2b8;
-    padding: 7px;
-}
-
-/* Fade-in Animation */
-.flash-message.fade-in {
-    animation: fadeIn 0.5s ease-in-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
     .flash-message {
-        top: 50px; /* Adjust the position for smaller screens */
-        max-width: 90%; /* Use most of the screen width */
-        width: 90%;
-        border-radius: 6px; /* Slightly smaller rounded corners */
-        font-size: 14px;
-    }
-
-    .flash-message .flash-message-content {
-        padding: 8px 10px;
-    }
-
-    .flash-message p {
-        font-size: 14px;
-    }
-
-    .flash-message .close-btn {
-        font-size: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .flash-message {
-        top: 40px; /* Adjust position further for very small screens */
-        max-width: 95%;
-        width: 95%;
-        font-size: 13px;
-        border-radius: 4px;
-    }
-
-    .flash-message .flash-message-content {
-        padding: 6px 8px;
-    }
-
-    .flash-message p {
-        font-size: 13px;
-    }
-
-    .flash-message .close-btn {
-        font-size: 14px;
-    }
-}    
+      visibility: hidden; /* Initially hidden */
+      opacity: 0; /* Invisible at the start */
+      position: fixed;
+      top: 60px; /* Adjust to place it below the navbar */
+      left: 50%; /* Center horizontally */
+      transform: translateX(-50%);
+      max-width: 400px;
+      width: 90%; /* Responsive on smaller screens */
+      z-index: 1050;
+      display: flex;
+      justify-content: space-between;
+      padding: 0;
+      align-items: center;
+      border-radius: 8px;
+      border: 2px solid #d4af37;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background-color: #fffdf0;
+      transition: opacity 0.5s ease, visibility 0.5s ease; /* Smooth fade-in and fade-out */
+  }
+  
+  /* Message Content */
+  .flash-message .flash-message-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+  }
+  
+  .flash-message p {
+      margin: 0;
+      flex-grow: 1;
+      font-size: 16px;
+      text-align: left;
+  }
+  
+  /* Close Button Styling */
+  .flash-message .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0 10px;
+      color: inherit;
+      transition: color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .flash-message .close-btn:hover {
+      color: #333;
+      transform: scale(1.1);
+      opacity: 0.8;
+  }
+  
+  /* Message-Specific Styling */
+  .flash-message-success {
+      background-color: #d4edda; /* Success */
+      color: #155724;
+      border-color: #28a745;
+      padding: 7px;
+  }
+  
+  .flash-message-error {
+      background-color: #f8d7da; /* Error */
+      color: #721c24;
+      border-color: #dc3545;
+      padding: 7px;
+  }
+  
+  .flash-message-warning {
+      background-color: #fff3cd; /* Warning */
+      color: #856404;
+      border-color: #ffc107;
+      padding: 7px;
+  }
+  
+  .flash-message-info {
+      background-color: #d1ecf1; /* Info */
+      color: #0c5460;
+      border-color: #17a2b8;
+      padding: 7px;
+  }
+  
+  /* Fade-in Animation */
+  .flash-message.fade-in {
+      visibility: visible; /* Make visible */
+      opacity: 1; /* Fully visible */
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+      .flash-message {
+          top: 50px; /* Adjust the position for smaller screens */
+          max-width: 90%; /* Use most of the screen width */
+          width: 90%;
+          border-radius: 6px;
+          font-size: 14px;
+      }
+  
+      .flash-message .flash-message-content {
+          padding: 8px 10px;
+      }
+  
+      .flash-message p {
+          font-size: 14px;
+      }
+  
+      .flash-message .close-btn {
+          font-size: 16px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .flash-message {
+          top: 40px;
+          max-width: 95%;
+          width: 95%;
+          font-size: 13px;
+          border-radius: 4px;
+      }
+  
+      .flash-message .flash-message-content {
+          padding: 6px 8px;
+      }
+  
+      .flash-message p {
+          font-size: 13px;
+      }
+  
+      .flash-message .close-btn {
+          font-size: 14px;
+      }
+  }  
   </style>
 </head>
 
@@ -234,16 +220,22 @@
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
-          <!-- Notification Icon (redirect to notifications page on click) -->
+        <!-- Notification Icon (redirect to notifications page on click) -->
           <li class="navbar-item position-relative">
             <a href="{% url 'notifications' %}" class="navbar-link">
-              <i class="fas fa-bell" id="notificationIcon" aria-hidden="true"></i>
-              <span class="badge bg-danger text-white rounded-circle position-absolute" 
-                    id="notificationBadge" 
-                    style="display: none; font-size: 12px;">0</span>
+              <i class="fas fa-bell {% if unread_notifications_count > 0 %}animate{% endif %}" 
+                id="notificationIcon" 
+                aria-hidden="true">
+              </i>
+              {% if unread_notifications_count > 0 %}
+                <span class="badge bg-danger text-white rounded-circle position-absolute" 
+                      id="notificationBadge" 
+                      style="font-size: 12px;">
+                  {{ unread_notifications_count }}
+                </span>
+              {% endif %}
             </a>
           </li>
-
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
           </li>
@@ -421,87 +413,6 @@
   
 
   {% comment %} <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const notificationBadge = document.getElementById("notificationBadge");
-      const notificationIcon = document.getElementById("notificationIcon");
-      const notificationDropdown = document.querySelector(".dropdown-menu");
-      const noNotifications = document.getElementById("noNotifications");
-  
-      // Fetch notifications periodically
-      function fetchNotifications() {
-        fetch("users/notifications/api") 
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            updateNotifications(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching notifications:", error);
-          });
-      }
-  
-      // Update badge, icon animation, and dropdown with new notifications
-      function updateNotifications(data) {
-        const unseenCount = data.unseen_count || 0;
-        const notifications = data.notifications || [];
-  
-        // Update badge
-        if (unseenCount > 0) {
-          notificationBadge.style.display = "inline-block"; // Show the badge
-          notificationBadge.textContent = unseenCount; // Display the unread count
-  
-          // Add animation to the notification icon
-          notificationIcon.classList.add("active");
-        } else {
-          notificationBadge.style.display = "none"; // Hide the badge
-          notificationIcon.classList.remove("active"); // Remove animation from the icon
-        }
-  
-        // Update dropdown
-        notificationDropdown.innerHTML = ""; // Clear existing notifications
-        if (notifications.length > 0) {
-          notifications.forEach((notification) => {
-            const listItem = document.createElement("li");
-            listItem.className = "dropdown-item";
-            listItem.innerHTML = `<a href="${notification.url}" class="text-dark">${notification.message}</a>`;
-            notificationDropdown.appendChild(listItem);
-          });
-        } else {
-          // Show "No new notifications" only if there are no notifications
-          noNotifications.style.display = notifications.length > 0 ? "none" : "block";
-        }
-      }
-  
-      // Initial fetch
-      fetchNotifications();
-  
-      // Poll every 30 seconds
-      setInterval(fetchNotifications, 30000); // Adjust interval as needed
-  
-      // Mark notifications as read
-      document.getElementById("notificationDropdown").addEventListener("click", function () {
-        fetch("users/notifications/mark-as-read/", {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-          },
-        }).then((response) => {
-          if (response.ok) {
-            notificationBadge.style.display = "none"; // Hide badge after marking as read
-          }
-        });
-      });
-    });
-  </script> {% endcomment %}
-  
-  
-  
-
-  <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Show flash message if it's present
         const flashMessage = document.getElementById("flash-message");
@@ -525,6 +436,38 @@
             flashMessage.style.display = "flex";
         }
     });
+</script> {% endcomment %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Show flash message if it's present
+    const flashMessage = document.getElementById("flash-message");
+    const closeBtn = document.getElementById("close-btn");
+
+    if (flashMessage) {
+        // Add fade-in effect when the flash message is shown
+        setTimeout(() => {
+            flashMessage.classList.add("fade-in");
+        }, 10); // 10ms to allow CSS and DOM rendering
+
+        // Set a timeout to hide the flash message after 7 seconds
+        setTimeout(function () {
+            flashMessage.classList.remove("fade-in");
+            setTimeout(() => {
+                flashMessage.style.display = "none"; // Ensure it's removed after animation
+            }, 500); // Match the fade-out transition duration
+        }, 7000);
+
+        // Close button functionality
+        closeBtn.addEventListener("click", function () {
+            flashMessage.classList.remove("fade-in");
+            setTimeout(() => {
+                flashMessage.style.display = "none";
+            }, 500); // Match the fade-out transition duration
+        });
+    }
+});
+
 </script>
 
   <!-- Ionicon link -->

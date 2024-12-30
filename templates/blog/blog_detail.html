@@ -509,7 +509,7 @@
 </script>
 
 
-<script>
+{% comment %} <script>
   // Ensure csrfToken is available (if not set elsewhere in the script)
   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
@@ -572,9 +572,63 @@
           });
       });
   });
+</script> {% endcomment %}
+
+<script>
+  // Ensure csrfToken is available
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+// Get the blog slug from a data attribute or JavaScript variable
+const slug = document.body.dataset.slug; // Assuming the slug is set as a data attribute in the HTML body
+
+// Select all reaction buttons
+const reactionButtons = document.querySelectorAll('.reaction-btn');
+
+// Add event listener for each button
+reactionButtons.forEach(button => {
+    button.addEventListener('click', function () {
+        const reactionType = this.dataset.reaction;
+
+        // Send the reaction to the backend
+        fetch(`/blogs/blog/${slug}/save_reaction/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ reaction: reactionType }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.reaction_summary) {
+                console.log('Reaction saved successfully:', data.reaction_summary);
+
+                // Update the reaction counts on the page
+                Object.keys(data.reaction_summary).forEach(reaction => {
+                    const countElement = document.querySelector(`#${reaction}-count`);
+                    if (countElement) {
+                        countElement.textContent = data.reaction_summary[reaction];
+                    }
+                });
+
+                // Update the 'clicked' class based on the current reaction
+                reactionButtons.forEach(btn => btn.classList.remove('clicked')); // Remove from all buttons
+                reactionButtons.forEach(btn => {
+                    if (btn.dataset.reaction === data.current_reaction) {
+                        btn.classList.add('clicked'); // Add to the correct button
+                    }
+                });
+            } else {
+                console.error('Error saving reaction:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+});
+
 </script>
-
-
 
 
 

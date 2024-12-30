@@ -5,6 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "Bloggy"
 
+AUTH_USER_MODEL = 'users.CustomUser'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -84,7 +85,7 @@ TEMPLATES = [
 
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # Default backend
+    'users.backends.CustomUserAuthenticationBackend',  # ustom backend
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
 ]
 
