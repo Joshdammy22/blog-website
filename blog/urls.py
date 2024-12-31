@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('blog/<slug:slug>/save_reaction/', views.save_reaction, name='save_reaction'),
-    path('<slug:slug>/comment/', views.add_comment, name='add_comment'),
+    # path('<slug:slug>/comment/', views.add_comment, name='add_comment'),
     path('mark-as-read/<slug:slug>/', views.mark_as_read, name='mark_as_read'),
 
     
@@ -16,6 +16,7 @@ urlpatterns = [
 
     
     path('blogs', views.blog_list, name='blogs'),
+    path('search/', views.search, name='search'),
 
 
     #path('follow/<int:user_id>/', views.follow_user, name='follow_user'),

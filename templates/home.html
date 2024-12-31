@@ -36,8 +36,8 @@ Home
 
 
       <!-- FEATURED POST -->
-      {% if featured_posts %}
-        <section class="section featured" aria-label="featured post">
+      {% if featured_posts|length >= 3 %}        
+      <section class="section featured" aria-label="featured post">
           <div class="container">
             <p class="section-subtitle">
               Get started with our <strong class="strong">best stories</strong>

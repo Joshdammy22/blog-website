@@ -3,19 +3,110 @@
 {% block title %} Recent Activities {% endblock %}
 
 {% block contents %}
+<style>
+    /* General Section Styling */
+.recent-activities {
+    padding: 40px 0;
+    background-color: #f9f9f9;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Styling for Activity List */
+.activities-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.activity-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-text {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.timestamp {
+    font-size: 0.875rem;
+    color: #888;
+    text-align: right;
+}
+
+/* Empty State */
+.no-activities {
+    text-align: center;
+    color: #777;
+    font-size: 1rem;
+    padding: 20px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .activity-text {
+        font-size: 1.1rem;
+    }
+
+    .timestamp {
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+}
+
+</style>
 <section class="section recent-activities">
     <div class="container">
         <h2 class="h2 section-title">Recent Activities</h2>
         <ul class="activities-list">
             {% for activity in activities %}
             <li class="activity-item">
-                <p>{{ activity.activity }}</p>
-                <span class="timestamp">{{ activity.timestamp }}</span>
+                <div class="activity-details">
+                    <p class="activity-text">{{ activity.activity }}</p>
+                    <span class="timestamp">{{ activity.timestamp }}</span>
+                </div>
             </li>
             {% empty %}
-            <li>No recent activities found.</li>
+            <li class="no-activities">No recent activities found.</li>
             {% endfor %}
         </ul>
     </div>
 </section>
 {% endblock %}
+
+
+
+{% block footer %}
+{% endblock %} 

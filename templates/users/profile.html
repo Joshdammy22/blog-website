@@ -213,11 +213,11 @@
           <span class="fas fa-user-circle"></span> Edit Profile
         </a>
       </li>
-      <li class="sidebar-list-item">
+      {% comment %} <li class="sidebar-list-item">
         <a href="{% url 'notifications' %}">
           <span class="fas fa-bell"></span> Notifications
         </a>
-      </li>
+      </li> {% endcomment %}
       <li class="sidebar-list-item">
         <a href="{% url 'my_blogs' %}">
           <span class="fas fa-th-list"></span> My Blogs
@@ -228,17 +228,21 @@
           <span class="fas fa-pencil-alt"></span> Create Blog
         </a>
       </li>
-      
       <li class="sidebar-list-item">
+        <a href="{% url 'analytics_page' %}">
+          <span class="fas fa-chart-line"></span> Analytics
+        </a>
+      </li>      
+      {% comment %} <li class="sidebar-list-item">
         <a href="{% url 'recent_activities' %}">
           <span class="fas fa-clipboard-list"></span> Recent Activities
         </a>
-      </li>
-      <li class="sidebar-list-item">
+      </li> {% endcomment %}
+      {% comment %} <li class="sidebar-list-item">
         <a href="{% url 'settings' %}">
           <span class="fas fa-cogs"></span> Settings
         </a>
-      </li>
+      </li> {% endcomment %}
     </ul>    
   </aside>
   <!-- End Sidebar -->
@@ -295,3 +299,8 @@
   }
 </script>
 {% endblock %}
+
+
+
+{% block footer %}
+{% endblock %} 

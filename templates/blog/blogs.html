@@ -7,6 +7,50 @@ Blogs
 
 
 {% block contents %}
+<style>
+  .pagination {
+    display: flex;
+    justify-content: center; /* Center the pagination controls */
+    align-items: center;     /* Vertically align the content */
+    margin: 20px 0;          /* Add space above and below the pagination */
+    font-family: Arial, sans-serif; /* Optional: You can choose the font family */
+}
+
+.pagination .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    margin: 0 10px; /* Space between the buttons */
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    border: none;
+}
+
+.pagination .btn:hover {
+    background-color: #0056b3; /* Hover effect */
+}
+
+.pagination span {
+    font-size: 16px;
+    color: #333;
+}
+
+.pagination i {
+    font-size: 18px;
+    margin: 0 5px; /* Space between the icon and the text */
+}
+
+.pagination a:disabled {
+    background-color: #ccc; /* Disable state for the buttons */
+    pointer-events: none;   /* Disable pointer events */
+}
+
+</style>
 <section class="section blogs" aria-label="all blogs">
   <div class="container">
     <h1 class="h1 section-title">Our Blogs</h1>
@@ -40,13 +84,22 @@ Blogs
     </ul>
     <div class="pagination">
       {% if blogs.has_previous %}
-        <a href="?page={{ blogs.previous_page_number }}" class="btn">Previous</a>
+          <a href="?page={{ blogs.previous_page_number }}" class="btn">
+              <i class="fas fa-chevron-left"></i> Previous
+          </a>
       {% endif %}
-      <span>Page {{ blogs.number }} of {{ blogs.paginator.num_pages }}</span>
+  
+      {% if blogs.paginator.num_pages > 1 %}
+          <span>Page {{ blogs.number }} of {{ blogs.paginator.num_pages }}</span>
+      {% endif %}
+  
       {% if blogs.has_next %}
-        <a href="?page={{ blogs.next_page_number }}" class="btn">Next</a>
+          <a href="?page={{ blogs.next_page_number }}" class="btn">
+              Next <i class="fas fa-chevron-right"></i>
+          </a>
       {% endif %}
-    </div>
+  </div>
+  
   </div>
 </section>
 {% endblock %}

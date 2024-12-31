@@ -21,6 +21,8 @@
 
   <!-- Font Awesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+   <!-- ApexJS -->
+  <script src="{% static 'js/apexcharts.min.js' %}"></script>
 
 
   <!-- Google font link -->
@@ -31,35 +33,106 @@
    <!--- Google material icon -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <style>
-    /* Animate the bell icon when there are unread notifications */
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      50% { transform: translateX(4px); }
-      75% { transform: translateX(-4px); }
-      100% { transform: translateX(0); }
-    }
-    
-    #notificationIcon.active {
-      animation: shake 0.5s ease-in-out infinite;
-    }
-    
-    #notificationBadge {
-      position: absolute;
-      top: 18px; /* Moves the badge upward */
-      right: 79px; /* Moves the badge closer to the icon horizontally */
-      transform: translate(0, 0); /* Remove additional offset */
-      z-index: 10; /* Keeps the badge above other elements */
-      font-size: 12px; /* Adjusts text size */
-      padding: 2px 6px; /* Controls badge size */
-      background-color: #dc3545; /* Red color */
-      color: #fff; /* White text */
-      border-radius: 50%; /* Circular shape */
-      display: inline-block !important; /* Ensures visibility */
-    }
-    #notificationBadge.show {
-      display: inline-block; /* Show the badge when there are unread notifications */
-    }
+    /* Search Bar Styling */
+.search-bar {
+  position: absolute; /* Ensure it is positioned relative to its nearest positioned ancestor or the viewport */
+  top: 0;
+  left: 0;
+  width: 100%; /* Make it span the full width of the viewport */
+  background-color: white; /* Set a background color to cover underlying elements */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for visibility */
+  z-index: 9999; /* Ensure it's above other elements */
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transform: translateY(-100%); /* Initially hide it above the viewport */
+  opacity: 0; /* Set it to invisible initially */
+  pointer-events: none; /* Prevent interactions when hidden */
+}
+
+/* When the search bar is active */
+.search-bar[data-active="true"] {
+  transform: translateY(0); /* Slide into view */
+  opacity: 1; /* Make it visible */
+  pointer-events: auto; /* Enable interactions */
+}
+
+/* Input wrapper styling */
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+/* Search input field */
+.input-field {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Close button styling */
+.search-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+/* Overlay styling */
+.overlay {
+  position: fixed; /* Cover the entire screen */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 9998; /* Place it just below the search bar */
+  opacity: 0; /* Initially hidden */
+  pointer-events: none; /* Prevent interactions when hidden */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* When the overlay is active */
+.overlay[data-active="true"] {
+  opacity: 1; /* Make it visible */
+  pointer-events: auto; /* Enable interactions */
+}
+
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.fa-bell.active {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+#notificationBadge {
+  position: absolute;
+  top: 18px; /* Moves the badge upward */
+  right: 79px; /* Moves the badge closer to the icon horizontally */
+  transform: translate(0, 0); /* Remove additional offset */
+  z-index: 10; /* Keeps the badge above other elements */
+  font-size: 12px; /* Adjusts text size */
+  padding: 2px 6px; /* Controls badge size */
+  background-color: #dc3545; /* Red color */
+  color: #fff; /* White text */
+  border-radius: 50%; /* Circular shape */
+  display: inline-block !important; /* Ensures visibility */
+}
+
+#notificationBadge.show {
+  display: inline-block; /* Show the badge when there are unread notifications */
+}
+
+
+
     .flash-message {
       visibility: hidden; /* Initially hidden */
       opacity: 0; /* Invisible at the start */
@@ -220,12 +293,11 @@
           <li class="navbar-item">
             <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
-        <!-- Notification Icon (redirect to notifications page on click) -->
           <li class="navbar-item position-relative">
             <a href="{% url 'notifications' %}" class="navbar-link">
-              <i class="fas fa-bell {% if unread_notifications_count > 0 %}animate{% endif %}" 
-                id="notificationIcon" 
-                aria-hidden="true">
+              <i class="fas fa-bell {% if unread_notifications_count > 0 %}active{% endif %}" 
+                 id="notificationIcon" 
+                 aria-hidden="true">
               </i>
               {% if unread_notifications_count > 0 %}
                 <span class="badge bg-danger text-white rounded-circle position-absolute" 
@@ -236,6 +308,7 @@
               {% endif %}
             </a>
           </li>
+          
           <li class="navbar-item">
             <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
           </li>
@@ -264,18 +337,24 @@
 </header>
 
 
-  <!-- Search Bar Section -->
-  <div class="search-bar" data-search-bar>
-    <div class="input-wrapper">
-      <input type="search" name="search" placeholder="Search" class="input-field">
-      <button class="search-close-btn" aria-label="close search bar" data-search-toggler>
-        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+<!-- Search Bar Section -->
+<div class="search-bar" data-search-bar>
+  <div class="input-wrapper">
+    <form method="get" action="{% url 'search' %}">
+      <input type="search" name="q" placeholder="Search blogs or authors" class="input-field" required minlength="3">
+      <button type="submit" aria-label="Search">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
       </button>
-    </div>
-    <p class="search-bar-text">Please enter at least 3 characters</p>
+    </form>
+    <button class="search-close-btn" aria-label="close search bar" data-search-toggler>
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
   </div>
+  <p class="search-bar-text">Please enter at least 3 characters</p>
+</div>
 
-  <div class="overlay" data-overlay data-search-toggler></div>
+<div class="overlay" data-overlay data-search-toggler></div>
+
 
 <!-- Flash messages -->
 {% if messages %}
@@ -411,32 +490,27 @@
     });
   </script>
   
-
-  {% comment %} <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Show flash message if it's present
-        const flashMessage = document.getElementById("flash-message");
-        const closeBtn = document.getElementById("close-btn");
-
-        if (flashMessage) {
-            // Add fade-in effect when the flash message is shown
-            flashMessage.classList.add("fade-in");
-
-            // Set a timeout to hide the flash message after 7 seconds
-            setTimeout(function() {
-                flashMessage.style.display = "none";
-            }, 7000); // 7000ms = 7 seconds
-
-            // Close button functionality
-            closeBtn.addEventListener("click", function() {
-                flashMessage.style.display = "none";
-            });
-
-            // Display flash message
-            flashMessage.style.display = "flex";
-        }
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const searchToggler = document.querySelectorAll("[data-search-toggler]");
+      const searchBar = document.querySelector("[data-search-bar]");
+      const overlay = document.querySelector("[data-overlay]");
+    
+      searchToggler.forEach((toggler) => {
+        toggler.addEventListener("click", () => {
+          const isActive = searchBar.getAttribute("data-active") === "true";
+          searchBar.setAttribute("data-active", !isActive);
+          overlay.setAttribute("data-active", !isActive);
+        });
+      });
+    
+      overlay.addEventListener("click", () => {
+        searchBar.setAttribute("data-active", false);
+        overlay.setAttribute("data-active", false);
+      });
     });
-</script> {% endcomment %}
+    
+  </script>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {

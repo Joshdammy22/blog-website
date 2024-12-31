@@ -417,81 +417,6 @@ def password_reset_confirm(request, uidb64, token):
 
     return render(request, 'users/password_reset_confirm.html', {'form': form})
 
-# from django.contrib.auth import get_user_model
-
-# User = get_user_model()
-
-# # Password Reset
-# ATTEMPT_LIMIT = 3
-# RATE_LIMIT_DURATION = 3600  # 1 hour in seconds
-
-# def password_reset_request(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-
-#         # Check rate limit
-#         cache_key = f"password_reset_attempts:{email}"
-#         last_attempt_time_key = f"{cache_key}:last_attempt_time"
-        
-#         # Get current attempts and the last attempt time
-#         attempts = cache.get(cache_key, 0)
-#         last_attempt_time = cache.get(last_attempt_time_key)
-
-#         if last_attempt_time:
-#             elapsed_time = datetime.now() - last_attempt_time
-#             if elapsed_time.total_seconds() > RATE_LIMIT_DURATION:
-#                 # Reset attempts after the rate limit period has passed
-#                 attempts = 0
-#                 cache.set(cache_key, attempts, RATE_LIMIT_DURATION)
-        
-#         if attempts >= ATTEMPT_LIMIT:
-#             # Calculate remaining time
-#             remaining_time = RATE_LIMIT_DURATION - elapsed_time.total_seconds()
-#             minutes, seconds = divmod(int(remaining_time), 60)
-#             messages.error(request, f"Too many attempts. Please try again in {minutes} minutes and {seconds} seconds.")
-#             return redirect('password_reset')
-
-#         # Check if the email exists in the database
-#         try:
-#             user = User.objects.get(email=email)
-#             # Generate the reset URL and send the email if user exists
-#             reset_url = generate_reset_token_and_url(user, request)
-#             send_reset_email(user, reset_url)
-#         except User.DoesNotExist:
-#             # If user doesn't exist, still inform the user but apply rate limiting
-#             pass
-
-#         messages.success(request, "If an account with this email exists, a password reset email has been sent.")
-
-#         # Increment attempts and store the time of the last attempt
-#         cache.set(cache_key, attempts + 1, RATE_LIMIT_DURATION)
-#         cache.set(last_attempt_time_key, datetime.now(), RATE_LIMIT_DURATION)
-
-#         return redirect('password_reset')
-
-#     return render(request, 'users/password_reset_request.html')
-
-# def password_reset_confirm(request, uidb64, token):
-#     user = confirm_reset_token(uidb64, token)
-#     if not user:
-#         messages.error(request, "Invalid or expired token.")
-#         return redirect('password_reset')
-
-#     if request.method == 'POST':
-#         password = request.POST.get('password')
-#         password_confirm = request.POST.get('password_confirm')
-
-#         if password == password_confirm:
-#             # Reset and save the new password
-#             user.password = make_password(password)
-#             user.save()
-#             messages.success(request, "Password reset successful! You can now log in.")
-#             return redirect('login')
-#         else:
-#             messages.error(request, "Passwords do not match.")
-
-#     return render(request, 'users/password_reset_confirm.html')
-
 
 # User Logout View
 @login_required
@@ -537,10 +462,14 @@ def profile_view(request):
 @login_required
 def author_profile_view(request, username):
     print(f"Accessing profile view for author -> {username}.")
+    
     # Fetch the user by username
     author = get_object_or_404(User, username=username)
     profile = author.profile  # Assuming a OneToOne relation exists with Profile
-
+    
+    # Get all published blogs by this author
+    blogs = Blog.objects.filter(author=author, status=1).order_by('-created_at')  # Only published blogs
+    
     # Check if the current user follows the author
     is_following = Follow.objects.filter(follower=request.user, followee=author).exists()
 
@@ -548,7 +477,9 @@ def author_profile_view(request, username):
         'profile': profile,
         'author': author,
         'is_following': is_following,  # Pass the follow status
+        'blogs': blogs,  # Pass the blogs to the template
     })
+
 
 
 
@@ -635,80 +566,15 @@ def edit_profile(request):
 
 @login_required
 def settings_view(request):
-    """
-    Manages user settings such as email notifications, dark mode preferences, email, and password updates.
-    """
-    # Fetch or create user settings
-    settings, created = UserSettings.objects.get_or_create(user=request.user)
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'update_settings':
-            # Handle Email Notifications and Dark Mode together
-            email_notifications = request.POST.get('email_notifications') == 'on'
-            dark_mode = request.POST.get('dark_mode') == 'on'
-            settings.email_notifications = email_notifications
-            settings.dark_mode = dark_mode
-            settings.save()
-            messages.success(request, 'Settings have been updated.')
-
-        elif action == 'change_email':
-            new_email = request.POST.get('email')
-            if new_email and new_email != request.user.email:
-                try:
-                    # Check if the email is already taken
-                    request.user.email = new_email
-                    request.user.save()
-                    messages.success(request, 'Your email has been updated.')
-                except ValidationError:
-                    messages.error(request, 'The email address is already in use.')
-
-        # Handle Password Change
-        if action == 'change_password'and password_form.validate_on_submit():
-            password_form = PasswordChangeForm(user=request.user, data=request.POST)
-            if password_form.is_valid():
-                password_form.save()
-                update_session_auth_hash(request, password_form.user)  # Important to keep the user logged in
-                messages.success(request, 'Your password has been updated.')
-
-        return redirect('profile')  # Redirect to the profile page after saving settings
-
-    # Password Change Form
-    password_form = PasswordChangeForm(user=request.user)
-
-    return render(request, 'users/settings.html', {
-        'settings': settings,
-        'password_form': password_form
-    })
+    pass
 
 # User Blog Interaction View
 @login_required
 def user_blog_interactions(request):
-    """
-    Displays all blogs that the user has interacted with (liked, commented, etc.).
-    """
-    print(f"Fetching blog interactions for user {request.user.username}.") 
-    interactions = UserBlogInteraction.objects.filter(user=request.user)
-    print(f"Found {interactions.count()} interactions for user {request.user.username}.") 
-    return render(request, 'users/blog_interactions.html', {'interactions': interactions})
+    pass
 
 def recent_activities(request):
-    """
-    Displays a list of recent activities of the logged-in user.
-    """
-    # Example: You can retrieve activities from a model if you have one, or simulate recent activities.
-    activities = [
-        {"activity": "Created a new blog post.", "timestamp": "2024-12-20 10:00 AM"},
-        {"activity": "Commented on a blog post.", "timestamp": "2024-12-19 03:30 PM"},
-        {"activity": "Updated profile picture.", "timestamp": "2024-12-18 08:45 AM"},
-    ]
-
-    context = {
-        'activities': activities
-    }
-
-    return render(request, 'users/recent_activities.html', context)
+    pass
 
 def my_blogs(request):
     """
@@ -723,9 +589,6 @@ def my_blogs(request):
 
     return render(request, 'users/my_blogs.html', context)
 
-
-# users/views.py
-
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from blog.models import Notification
@@ -734,19 +597,30 @@ from blog.models import Notification
 def fetch_notifications(request):
     # Fetch unseen notifications for the logged-in user
     unseen_notifications = Notification.objects.filter(recipient=request.user, is_read=False)
-    notifications_data = [
-        {
-            "message": f"{n.sender.username} {n.get_notification_type_display()} your post: {n.blog.title}",
-            "url": f"/blog/{n.blog.id}" if n.blog else "/",
+    
+    notifications_data = []
+    for n in unseen_notifications:
+        if n.notification_type == 'follow':
+            message = f"{n.sender.username} started following you."
+            url = "/profile/"  # Adjust the URL to the user's profile page
+        elif n.notification_type == 'reaction' or n.notification_type == 'comment':
+            message = f"{n.sender.username} {n.get_notification_type_display()} your post: {n.blog.title}" if n.blog else ""
+            url = f"/blog/{n.blog.id}" if n.blog else "/"
+        else:
+            message = "You have a new notification."
+            url = "/"
+        
+        notifications_data.append({
+            "message": message,
+            "url": url,
             "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        for n in unseen_notifications
-    ]
+        })
     
     return JsonResponse({
         "unseen_count": unseen_notifications.count(),
         "notifications": notifications_data
     })
+
 
 @login_required
 def mark_notifications_as_read(request):
@@ -813,3 +687,70 @@ def manage_subscription(request):
             return redirect('home')  # Redirect to your desired page
     
     return render(request, 'manage_subscription.html')
+
+
+
+from django.shortcuts import render
+from blog.models import *
+from django.core.paginator import Paginator
+
+def analytics_page(request):
+    # Get all blogs by the logged-in user, ordered by creation date
+    blogs = Blog.objects.filter(author=request.user).order_by('-created_at')
+
+    # Debugging print: List of blogs retrieved
+    print("Blogs Retrieved: ", blogs)
+
+    # Pagination: Display 5 blogs per page
+    paginator = Paginator(blogs, 5)  # Show 5 blogs per page
+    page_number = request.GET.get('page')  # Get the current page number from the URL
+    page_obj = paginator.get_page(page_number)
+
+    # Gather analytics data for each blog
+    blog_analytics = []
+    for blog in page_obj:
+        reactions_data = {
+            'like': blog.get_reaction_count('like'),
+            'love': blog.get_reaction_count('love'),
+            'haha': blog.get_reaction_count('haha'),
+            'wow': blog.get_reaction_count('wow'),
+            'applaud': blog.get_reaction_count('applaud')
+        }
+
+        # Calculate total reactions
+        total_reactions = sum(reactions_data.values())
+
+        # Total comments and reads
+        comments_count = blog.comments.count()
+        total_reads = blog.read_count
+
+        # Debugging print: Key metrics for each blog
+        print(f"Blog: {blog.title}")
+        print(f"Reads: {total_reads}, Comments: {comments_count}, Total Reactions: {total_reactions}")
+
+        # Add data to the list
+        blog_analytics.append({
+            'blog': blog,
+            'reactions': reactions_data,
+            'comments_count': comments_count,
+            'total_reads': total_reads,
+            'chart_data': [total_reads, comments_count, total_reactions]  # Format for chart
+        })
+
+    # Total counts for the header
+    total_blogs = blogs.count()
+    total_reads = sum(blog['total_reads'] for blog in blog_analytics)
+    total_engagements = sum(blog['comments_count'] + sum(blog['reactions'].values()) for blog in blog_analytics)
+
+    # Debugging print: Total values
+    print("Total Blogs: ", total_blogs)
+    print("Total Reads: ", total_reads)
+    print("Total Engagements: ", total_engagements)
+
+    return render(request, 'users/analytics.html', {
+        'blogs': blog_analytics,
+        'total_blogs': total_blogs,
+        'total_reads': total_reads,
+        'total_engagements': total_engagements,
+        'page_obj': page_obj,  # Pass the pagination object to the template
+    })

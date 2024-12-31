@@ -471,7 +471,7 @@
                       <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
                   </div>
               </div>
-              <p class="comment-body">{{ comment.content }}</p>
+              <p class="comment-body" id="comment-{{ comment.id }}">{{ comment.content }}</p>
           </li>
           {% empty %}
           <li class="comment-empty">No comments yet. Be the first to comment!</li>
@@ -507,72 +507,6 @@
     });
   });
 </script>
-
-
-{% comment %} <script>
-  // Ensure csrfToken is available (if not set elsewhere in the script)
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  // Get the blog slug from a data attribute or JavaScript variable
-  const slug = document.body.dataset.slug; // Assuming you set the slug in the HTML body element as a data attribute
-
-  // Select all reaction buttons
-  const reactionButtons = document.querySelectorAll('.reaction-btn');
-
-  // Add event listener for each button
-  reactionButtons.forEach(button => {
-      button.addEventListener('click', function() {
-          const reactionType = this.dataset.reaction;
-
-          // Remove the 'clicked' class from all buttons
-          reactionButtons.forEach(btn => btn.classList.remove('clicked'));
-
-          // Add the 'clicked' class to the clicked button
-          this.classList.add('clicked');
-
-          // Send the reaction to the backend
-          fetch(`/blogs/blog/${slug}/save_reaction/`, {  // Updated URL to match Django pattern
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': csrfToken,  // Ensure CSRF token is included for security
-              },
-              body: JSON.stringify({
-                  reaction: reactionType,  // Send the reaction directly
-              })
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.reaction_summary) {
-                  // Update the UI with the new reaction counts
-                  console.log('Reaction saved successfully:', data.reaction_summary);
-
-                  // Optionally, update the reaction counts on the page (if available)
-                  Object.keys(data.reaction_summary).forEach(reaction => {
-                      const countElement = document.querySelector(`#${reaction}-count`);
-                      if (countElement) {
-                          countElement.textContent = data.reaction_summary[reaction];
-                      }
-                  });
-
-                  // Ensure the correct button remains clicked on page reload
-                  if (data.current_reaction) {
-                      reactionButtons.forEach(btn => {
-                          if (btn.dataset.reaction === data.current_reaction) {
-                              btn.classList.add('clicked');
-                          }
-                      });
-                  }
-              } else {
-                  console.error('Error saving reaction:', data.error);
-              }
-          })
-          .catch(error => {
-              console.error('Error:', error);
-          });
-      });
-  });
-</script> {% endcomment %}
 
 <script>
   // Ensure csrfToken is available
@@ -665,6 +599,19 @@ reactionButtons.forEach(button => {
       }
     }
   }, 1000);  // Check every second
+  </script>
+
+  <script>
+    // Add this to the blog detail template to enable smooth scrolling
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.location.hash) {
+      const element = document.querySelector(window.location.hash);
+      if (element) {
+          window.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
+      }
+  }
+});
+
   </script>
   
 {% endblock %}

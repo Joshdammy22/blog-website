@@ -16,17 +16,17 @@ def home(request):
     if request.user.is_authenticated:
         print(f"User: '{request.user.username}' is authenticated, redirecting to the Home page.")  
 
-        # Get the featured posts (limiting to 6 featured posts for example)
-        featured_posts = Blog.objects.filter(featured=True)[:6]
+        # Get the featured posts (limiting to 6 featured posts)
+        featured_posts = Blog.objects.filter(featured=True).exclude(status=0)[:6]
 
         # Get the top 2 authors (you can adjust the logic here based on your actual use case)
         top_authors = Profile.objects.all()[:2]
 
-        # Fetch the latest 6 posts ordered by 'created_at' (assuming 'created_at' is the field to order by)
-        recent_posts = Blog.objects.all().order_by('-created_at')[:6]  # Change from 'date_posted' to 'created_at'
+        # Fetch the latest 6 posts ordered by 'created_at'
+        recent_posts = Blog.objects.all().order_by('-created_at').exclude(status=0)[:6] 
 
         # Fetch a random or relevant list of recommended posts, filtering by categories, and excluding post with id=1 for demonstration
-        recommended_posts = Blog.objects.filter(categories__name__in=['Tech', 'Business']).exclude(id=1)[:5]  # Correct filter on 'categories'
+        recommended_posts = Blog.objects.filter(categories__name__in=['Tech', 'Business']).exclude(id=1)[:5] 
 
         # Check if the user is already subscribed
         subscription_exists = SubscriptionList.objects.filter(user=request.user).exists()

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results for "{{ query }}"{% endblock title %}
+
+{% block contents %}
+<style>
+    /* General */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.results-section-blog {
+  margin: 40px;
+}
+
+/* Blogs Grid */
+.blogs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.blog-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  background-color: #fff;
+}
+.blog-card:hover {
+  transform: translateY(-5px);
+}
+.card-banner {
+  position: relative;
+  height: 200px;
+}
+.img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-content {
+  padding: 15px;
+}
+.blog-title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+.blog-tags, .blog-categories {
+  margin-bottom: 5px;
+}
+.tag, .category {
+  background-color: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-right: 5px;
+}
+
+/* Authors List */
+.results-section-author {
+  margin: 40px 0; /* Keep vertical spacing, remove horizontal margin */
+}
+
+.authors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-left: 60px; /* Add left margin for spacing from the edge */
+}
+.author-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: transform 0.3s ease;
+  width: 700px; /* Fixed width */
+  max-width: 100%; /* Ensure responsiveness */
+  margin: 0; /* Remove auto-centering */
+  cursor: pointer;
+}
+.profile-picture {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.img-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.author-details {
+  flex: 1;
+}
+.author-name {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+.username {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+.bio {
+  font-size: 0.9rem;
+  color: #333;
+}
+/* Make the entire author card clickable */
+.author-card-link {
+  text-decoration: none;  /* Remove default underline */
+  color: inherit;  /* Inherit text color from parent */
+}
+.author-card:hover {
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+</style>
+<div class="search-results container">
+  <h1>Search Results for "{{ query }}"</h1>
+
+  <!-- Matching Blogs -->
+  {% if blogs.exists %}
+  <div class="results-section-blog">
+    <h2>Matching Blogs</h2>
+      <div class="blogs-grid">
+        {% for blog in blogs %}
+        <div class="blog-card">
+          <figure class="card-banner img-holder">
+            {% if blog.blog_image %}
+              <img src="{{ blog.blog_image.url }}" alt="{{ blog.title }}" class="img-cover">
+            {% else %}
+              <img src="/path/to/default-image.jpg" alt="{{ blog.title }}" class="img-cover">
+            {% endif %}
+          </figure>
+          <div class="card-content">
+            <h3 class="blog-title">
+              <a href="{{ blog.get_absolute_url }}" class="hover:underline">{{ blog.title }}</a>
+            </h3>
+            <p class="blog-tags">
+              {% for tag in blog.tags.all %}
+                <span class="tag">{{ tag.name }}</span>
+              {% endfor %}
+            </p>
+            <p class="blog-categories">
+              {% for category in blog.categories.all %}
+                <span class="category">{{ category.name }}</span>
+              {% endfor %}
+            </p>
+            <p class="blog-excerpt">{{ blog.content|truncatewords:20 }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No matching blogs found.</p>
+    {% endif %}
+  </div>
+
+  <!-- Matching Authors -->
+{% if authors.exists %}
+<div class="results-section">
+  <h2 class="search-results container">Matching Authors</h2>
+    <div class="authors-list">
+      {% for author in authors %}
+      <a href="{% url 'profile' author.username %}" class="author-card-link">
+        <div class="author-card">
+          <div class="profile-picture">
+            {% if author.profile.profile_picture %}
+              <img src="{{ author.profile.profile_picture.url }}" alt="{{ author.profile.first_name }}" class="img-avatar">
+            {% else %}
+              <img src="/static/images/user.jpg" alt="Default Avatar" class="img-avatar">
+            {% endif %}
+          </div>
+          <div class="author-details">
+            <h3 class="author-name">{{ author.profile.first_name }} {{ author.profile.last_name }}</h3>
+            <p class="username">@{{ author.username }}</p>
+            <p class="bio">{{ author.profile.bio|default:"No bio available." }}</p>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No matching authors found.</p>
+  {% endif %}
+</div>
+
+</div>
+{% endblock %}
+
+
+
+{% block footer %}
+{% endblock %} 

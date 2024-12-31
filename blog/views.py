@@ -13,7 +13,9 @@ from django.urls import reverse
 from .util import *
 import logging
 from .util import create_follow_notification, delete_follow_notification
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -106,7 +108,7 @@ def blog_list(request):
 
     return render(request, 'blog/blogs.html', {'page_obj': page_obj, 'blogs':blogs})
 
-
+    
 @login_required
 def blog_detail(request, slug):
     print(f"DEBUG: Entering blog_detail view with slug: {slug}")
@@ -240,43 +242,6 @@ def mark_as_read(request, slug):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
-
-# View to add a comment to a blog post
-@login_required
-def add_comment(request, slug):
-    blog = get_object_or_404(Blog, slug=slug, status=1)  # Only allow comments on published blogs
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.author = request.user
-            comment.blog = blog
-            comment.save()
-            return redirect(blog.get_absolute_url())  # Redirect to the blog detail page
-    else:
-        form = CommentForm()
-    return render(request, 'blog/add_comment.html', {'form': form, 'blog': blog})
-
-
-# # View to follow a user
-# @login_required
-# def follow_user(request, user_id):
-#     followee = get_object_or_404(User, id=user_id)
-#     if request.user != followee:
-#         existing_follow = Follow.objects.filter(follower=request.user, followee=followee)
-#         if existing_follow.exists():
-#             existing_follow.delete()  # Unfollow the user
-#         else:
-#             Follow.objects.create(follower=request.user, followee=followee)  # Follow the user
-#             # Create a notification when the user follows another user
-#             Notification.objects.create(
-#                 recipient=followee,
-#                 sender=request.user,
-#                 notification_type='follow'
-#             )
-#     return redirect('profile', user_id=user_id)  # Redirect to the followed user's profile
-
-
 # View to list all notifications for the current user
 @login_required
 def notification_list(request):
@@ -311,3 +276,30 @@ def toggle_follow(request, user_id):
     
     return redirect('profile', username=author.username)
 
+from django.shortcuts import render
+from django.db.models import Q
+from .models import Blog
+from users.models import CustomUser
+
+def search(request):
+    query = request.GET.get('q', '')
+    blogs = Blog.objects.none()
+    authors = CustomUser.objects.none()
+
+    if query:
+        blogs = Blog.objects.filter(
+            Q(title__icontains=query) | Q(content__icontains=query)
+        )
+        authors = CustomUser.objects.filter(
+            Q(username__icontains=query) | 
+            Q(email__icontains=query) | 
+            Q(profile__first_name__icontains=query) | 
+            Q(profile__last_name__icontains=query)
+        )
+
+    context = {
+        'query': query,
+        'blogs': blogs,
+        'authors': authors,
+    }
+    return render(request, 'blog/search_results.html', context)

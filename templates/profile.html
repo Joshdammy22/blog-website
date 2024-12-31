@@ -1,27 +1,26 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}{{ author.username }}'s Profile{% endblock title %}
-
-{% block contents %}
+{% extends 'base.html' %} {% load static %} {% block title %}{{ author.username
+}}'s Profile{% endblock title %} {% block contents %}
 <style>
-    /* General Styling */
-body {
+  /* General Styling */
+  body {
     margin: 0;
     padding: 0;
     background-color: #f4f5f7;
     font-family: Arial, sans-serif;
-}
+  }
 
-/* Main Container */
-.main-container {
+  .main-container {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 20px;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom:70px;
 }
 
-/* Profile Card */
-.profile-card {
+  /* Profile Card */
+  .profile-card {
     background: #fff;
     padding: 30px 20px;
     border-radius: 8px;
@@ -29,155 +28,273 @@ body {
     max-width: 600px;
     text-align: center;
     width: 100%;
-}
+  }
 
-.profile-picture img {
+  .profile-picture img {
     width: 120px;
     height: 120px;
     object-fit: cover;
     border-radius: 50%;
     margin: 0 auto;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  }
 
-.profile-details {
+  .profile-details {
     list-style: none;
     padding: 0;
     margin: 20px 0;
-}
+  }
 
-.profile-details li {
+  .profile-details li {
     margin-bottom: 10px;
     font-size: 16px;
     color: #6c757d;
-}
+  }
 
-.bio {
+  .bio {
     font-size: 14px;
     color: #495057;
     margin-bottom: 20px;
-}
+  }
 
-/* Style for Follow/Unfollow Buttons */
-.btn {
+  /* Style for Follow/Unfollow Buttons */
+  .btn {
     padding: 6px 12px; /* Reduced size */
     font-size: 14px; /* Smaller text */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
-}
+  }
 
-/* Follow button */
-.btn-primary {
+  /* Follow button */
+  .btn-primary {
     background-color: #007bff;
     color: white;
-}
+  }
 
-.btn-primary:hover {
+  .btn-primary:hover {
     background-color: #0056b3;
-}
+  }
 
-/* Unfollow button */
-.btn-danger {
+  /* Unfollow button */
+  .btn-danger {
     background-color: #dc3545;
     color: white;
-}
+  }
 
-.btn-danger:hover {
+  .btn-danger:hover {
     background-color: #c82333;
-}
+  }
 
-/* Disabled Button (for self-follow) */
-.btn-secondary {
+  /* Disabled Button (for self-follow) */
+  .btn-secondary {
     background-color: #6c757d;
     color: white;
     cursor: not-allowed;
-}
+  }
 
-.btn-secondary:hover {
+  .btn-secondary:hover {
     background-color: #6c757d;
-}
+  }
 
-/* Center the button within the card */
-.card-body form {
+  /* Center the button within the card */
+  .card-body form {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 20px;
-}
+  }
 
-/* Responsive Adjustments */
-@media screen and (max-width: 768px) {
+  /* Responsive Adjustments */
+  @media screen and (max-width: 768px) {
     .profile-card {
-        max-width: 90%;
+      max-width: 90%;
     }
-}
+  }
+
+  /* Blogs Section Styling */
+  .blogs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+  }
+
+  .blog-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: left;
+      transition: transform 0.3s;
+  }
+
+  .blog-card:hover {
+      transform: translateY(-5px);
+  }
+
+  .blog-image img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+  }
+
+  .blog-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+  }
+
+  .blog-meta {
+      font-size: 14px;
+      color: #6c757d;
+      margin: 10px 0;
+  }
+
+  .blog-content {
+      font-size: 14px;
+      color: #495057;
+      margin-bottom: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+  }
+
+  .read-more {
+      font-size: 14px;
+      color: #007bff;
+      text-decoration: none;
+  }
+
+  /* Responsive Adjustments */
+  @media screen and (max-width: 768px) {
+      .profile-card {
+          max-width: 90%;
+      }
+  }
 
 </style>
 
+<section class="main-container">
+  <!-- Profile Card -->
+  <div class="card profile-card">
+    <div class="card-header">
+      <div class="profile-picture">
+        {% if profile.profile_picture %}
+        <img
+          src="{{ profile.profile_picture.url }}"
+          alt="{{ author.username }}'s Profile Picture"
+          class="img-cover rounded-circle"
+        />
+        {% else %}
+        <img
+          src="{% static 'images/user.jpg' %}"
+          alt="Default Profile Picture"
+          class="img-cover rounded-circle"
+        />
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-body">
+      <h1 class="h2 text-center">
+        {{ profile.first_name }} {{ profile.last_name }}
+      </h1>
+      <p class="bio text-center">
+        {{ profile.bio|default:"This user has not added a bio yet." }}
+      </p>
+      <ul class="profile-details">
+        <li><strong>Username:</strong> {{ author.username }}</li>
+        <li><strong>Email:</strong> {{ author.email }}</li>
+        {% if profile.phone_number %}
+        <li><strong>Phone:</strong> {{ profile.phone_number }}</li>
+        {% endif %} {% if profile.website %}
+        <li>
+          <strong>Website:</strong>
+          <a href="{{ profile.website }}" target="_blank" class="profile-link"
+            >{{ profile.website }}</a
+          >
+        </li>
+        {% endif %} {% if profile.location %}
+        <li><strong>Location:</strong> {{ profile.location }}</li>
+        {% endif %} {% if profile.birth_date %}
+        <li><strong>Date of Birth:</strong> {{ profile.birth_date }}</li>
+        {% endif %}
+      </ul>
 
-    <section class="main-container">
-        <!-- Profile Card -->
-        <div class="card profile-card">
-            <div class="card-header">
-                <div class="profile-picture">
-                    {% if profile.profile_picture %}
-                    <img src="{{ profile.profile_picture.url }}" alt="{{ author.username }}'s Profile Picture" class="img-cover rounded-circle">
-                    {% else %}
-                    <img src="{% static 'images/user.jpg' %}" alt="Default Profile Picture" class="img-cover rounded-circle">
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                <h1 class="h2 text-center">{{ profile.first_name }} {{ profile.last_name }}</h1>
-                <p class="bio text-center">{{ profile.bio|default:"This user has not added a bio yet." }}</p>
-                <ul class="profile-details">
-                    <li><strong>Username:</strong> {{ author.username }}</li>
-                    <li><strong>Email:</strong> {{ author.email }}</li>
-                    {% if profile.phone_number %}
-                    <li><strong>Phone:</strong> {{ profile.phone_number }}</li>
-                    {% endif %}
-                    {% if profile.website %}
-                    <li><strong>Website:</strong> <a href="{{ profile.website }}" target="_blank" class="profile-link">{{ profile.website }}</a></li>
-                    {% endif %}
-                    {% if profile.location %}
-                    <li><strong>Location:</strong> {{ profile.location }}</li>
-                    {% endif %}
-                    {% if profile.birth_date %}
-                    <li><strong>Date of Birth:</strong> {{ profile.birth_date }}</li>
-                    {% endif %}
-                </ul>
-    
-                <div class="text-center">
-                    <p>{{ author.followers.count }} followers</p>
-                </div>
-    
-                {% if user.is_authenticated %}
-                <form method="POST" action="{% url 'toggle_follow' author.id %}" class="text-center">
-                    {% csrf_token %}
-                    {% if user == author %}
-                        <!-- Do nothing if the user is the same as the author -->
-                    {% elif is_following %}
-                        <!-- If the user already follows the author, display 'Unfollow' -->
-                        <button type="submit" class="btn btn-danger">Unfollow</button>
-                    {% else %}
-                        <!-- If the user does not follow the author, display 'Follow' -->
-                        <button type="submit" class="btn btn-primary">Follow</button>
-                    {% endif %}
-                </form>
+      <div class="text-center">
+        <p>{{ author.followers.count }} followers</p>
+      </div>
+
+      {% if user.is_authenticated %}
+      <form
+        method="POST"
+        action="{% url 'toggle_follow' author.id %}"
+        class="text-center"
+      >
+        {% csrf_token %} {% if user == author %}
+        <!-- Do nothing if the user is the same as the author -->
+        {% elif is_following %}
+        <!-- If the user already follows the author, display 'Unfollow' -->
+        <button type="submit" class="btn btn-danger">Unfollow</button>
+        {% else %}
+        <!-- If the user does not follow the author, display 'Follow' -->
+        <button type="submit" class="btn btn-primary">Follow</button>
+        {% endif %}
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Blogs Section -->
+  <div class="blogs-grid">
+    {% for blog in blogs %}
+    <div class="blog-card">
+      <div class="blog-image">
+        {% if blog.blog_image %}
+        <img src="{{ blog.blog_image.url }}" alt="{{ blog.title }}" />
+        {% else %}
+        <img
+          src="{% static 'images/default-blog.jpg' %}"
+          alt="Default Blog Image"
+        />
+        {% endif %}
+      </div>
+      <h3 class="blog-title">{{ blog.title }}</h3>
+      <div class="blog-meta">
+        <span class="card-tag"
+          >Tags: 
+          {% for tag in blog.tags.all %}{{ tag.name }}
+            {% if not forloop.last %}, 
             {% endif %}
-            
+          {% endfor %}
+        </span
+        ><br />
+        <span class="card-tag"
+          >Categories: 
+          {% for category in blog.categories.all %}
+            {{ category.name}}
+            {% if not forloop.last %}, 
+            {% endif %}
+          {% endfor %}
+        </span
+        >
+      </div>
+      <p class="blog-content">{{ blog.content|truncatewords:30|safe }}</p>
+      <a href="{% url 'blog_detail' blog.slug  %}" class="read-more"
+        >Read more...</a
+      >
+    </div>
+    {% empty %}
+    <p>No blogs available.</p>
+    {% endfor %}
+  </div>
+</section>
 
-            </div>
-        </div>
-    </section>
-    
-    
-
-  
-
-{% endblock %}
-
-{% block footer %}
 {% endblock %} 
+
+
+{% block footer %} {% endblock %}

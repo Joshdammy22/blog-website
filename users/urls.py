@@ -36,6 +36,9 @@ urlpatterns = [
     # User Settings
     path('settings/', views.settings_view, name='settings'),
 
+    
+    path('analytics/', views.analytics_page, name='analytics_page'),
+
     # User Blog Interactions
     path('blog-interactions/', views.user_blog_interactions, name='blog_interactions'),
 
