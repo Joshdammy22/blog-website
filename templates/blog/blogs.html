@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Blogs
+{% endblock title %}
+
+
+{% block contents %}
+<style>
+  .pagination {
+    display: flex;
+    justify-content: center; /* Center the pagination controls */
+    align-items: center;     /* Vertically align the content */
+    margin: 20px 0;          /* Add space above and below the pagination */
+    font-family: Arial, sans-serif; /* Optional: You can choose the font family */
+}
+
+.pagination .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    margin: 0 10px; /* Space between the buttons */
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    border: none;
+}
+
+.pagination .btn:hover {
+    background-color: #0056b3; /* Hover effect */
+}
+
+.pagination span {
+    font-size: 16px;
+    color: #333;
+}
+
+.pagination i {
+    font-size: 18px;
+    margin: 0 5px; /* Space between the icon and the text */
+}
+
+.pagination a:disabled {
+    background-color: #ccc; /* Disable state for the buttons */
+    pointer-events: none;   /* Disable pointer events */
+}
+
+</style>
+<section class="section blogs" aria-label="all blogs">
+  <div class="container">
+    <h1 class="h1 section-title">Our Blogs</h1>
+    <ul class="grid-list">
+      {% for post in blogs %}
+        <li>
+          <div class="blog-card">
+            <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
+              {% if post.blog_image %}
+                <img src="{{ post.blog_image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+              {% else %}
+                <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+              {% endif %}
+            </figure>
+            <div class="card-content">
+              <ul class="card-meta-list">
+                {% for tag in post.tags.all %}
+                  <li>
+                    <a href="#" class="card-tag">{{ tag.name }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+              <h3 class="h4">
+                <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">{{ post.title }}</a>
+              </h3>
+              <p class="card-text">{{ post.excerpt }}</p>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="pagination">
+      {% if blogs.has_previous %}
+          <a href="?page={{ blogs.previous_page_number }}" class="btn">
+              <i class="fas fa-chevron-left"></i> Previous
+          </a>
+      {% endif %}
+  
+      {% if blogs.paginator.num_pages > 1 %}
+          <span>Page {{ blogs.number }} of {{ blogs.paginator.num_pages }}</span>
+      {% endif %}
+  
+      {% if blogs.has_next %}
+          <a href="?page={{ blogs.next_page_number }}" class="btn">
+              Next <i class="fas fa-chevron-right"></i>
+          </a>
+      {% endif %}
+  </div>
+  
+  </div>
+</section>
+{% endblock %}

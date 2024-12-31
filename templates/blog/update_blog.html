@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Blog{% endblock %}
+
+{% block contents %}
+<style>
+    /* Style for the button */
+    .btn-primary {
+        padding: 10px 20px; /* Adjust padding for reasonable size */
+        font-size: 16px; /* Font size */
+        text-align: center; /* Ensure text is centered */
+        border-radius: 5px; /* Rounded corners */
+        transition: background-color 0.3s ease; /* Smooth hover effect */
+        margin-top:7px;
+    }
+
+    /* Add hover effect for the button */
+    .btn-primary:hover {
+        background-color: #0056b3; /* Slightly darker blue */
+        border-color: #0056b3; /* Match border color */
+    }
+
+    /* Optional: To avoid button being too wide, you can limit the width */
+    .btn-primary {
+        width: auto; /* Let it take the necessary width */
+        max-width: 250px; /* Set a max width if needed */
+    }
+    .selected-items-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Space between items */
+    }
+    
+    .selected-items-container .category {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+    
+    .selected-items-container .category .remove-category {
+        margin-left: 10px;
+        cursor: pointer;
+        color: red;
+        font-weight: bold;
+    }
+    #category-select {
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    #category-select[style="display: none;"] {
+        opacity: 0;
+        visibility: hidden;
+    }
+    
+    .create-blog-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 100px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    label {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #555;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1.125rem;
+    }
+
+    .tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+    }
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #007bff;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.875rem;
+    }
+
+    .tag .remove-tag {
+        margin-left: 8px;
+        cursor: pointer;
+    }
+
+    .autocomplete-dropdown {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: white;
+        position: absolute;
+        z-index: 10;
+        max-height: 150px;
+        overflow-y: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .autocomplete-item {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #f1f1f1;
+    }
+    #content-editor {
+        width: 100%;
+        min-height: 100px; /* Minimum height of the editor */
+    }
+    /* Style the checkbox container */
+.form-check-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+/* Style each checkbox */
+.form-check-input {
+    margin-right: 5px;
+}
+
+/* Style the labels for checkboxes */
+.form-check label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+/* Style the collapsible input fields */
+#categories-input, #tags-input {
+    cursor: pointer;
+    background-color: #f9f9f9;
+}
+
+#categories-input:hover, #tags-input:hover {
+    background-color: #e9ecef;
+}
+
+/* Style the container for checkboxes */
+.form-check-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    max-height: 150px; /* Enable scrolling if too many options */
+    overflow-y: auto;
+}
+
+/* Align checkboxes and labels */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between checkbox and label */
+    margin-bottom: 8px;
+}
+
+.form-check-input {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    margin-right: 10px; /* Add spacing between the checkbox and label */
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+/* Add hover effect for better interactivity */
+.form-check:hover .form-check-label {
+    color: #007bff;
+}
+
+/* Optional: Add focus styles for accessibility */
+.form-check-input:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Collapse behavior */
+.collapse:not(.show) {
+    display: none;
+}
+/* Style for disabled checkboxes */
+.form-check.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.form-check.disabled .form-check-label {
+    cursor: not-allowed;
+}
+</style>
+
+<div class="create-blog-container">
+    <h1>Update Blog</h1>
+    <form method="post" enctype="multipart/form-data" class="needs-validation">
+        {% csrf_token %}
+        
+        <!-- Title Field -->
+        <div class="mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+            {% for error in form.title.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+        
+        <!-- Content Field -->
+        <div class="form-group">
+            <label for="{{ form.content.id_for_label }}">Content</label>
+            <textarea id="content-editor" name="content" rows="10" class="form-control">{{ form.content.value }}</textarea>
+            {% for error in form.content.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+        
+        <!-- Blog Image Field -->
+        <div class="mb-3">
+            {{ form.blog_image.label_tag }}
+            {{ form.blog_image }}
+            {% for error in form.blog_image.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+        
+        <!-- Categories Field -->
+        <div class="mb-3">
+            <label for="id_categories" class="form-label">Categories (Select up to 3)</label>
+            <input type="text" class="form-control" id="categories-input" placeholder="Select Categories" readonly>
+            <div id="categories-collapse" class="collapse">
+                <div class="form-check-container mt-2" data-max-select="3">
+                    {% for category in form.categories.field.queryset %}
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input category-checkbox" 
+                            type="checkbox" 
+                            id="category_{{ category.id }}" 
+                            name="categories" 
+                            value="{{ category.id }}" 
+                            {% if category.id in selected_categories %}checked{% endif %}>
+                        <label class="form-check-label" for="category_{{ category.id }}">
+                            {{ category.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% for error in form.categories.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+    
+        <!-- Tags Field -->
+        <div class="mb-3">
+            <label for="id_tags" class="form-label">Tags (Select up to 5)</label>
+            <input type="text" class="form-control" id="tags-input" placeholder="Select Tags" readonly>
+            <div id="tags-collapse" class="collapse">
+                <div class="form-check-container mt-2" data-max-select="5">
+                    {% for tag in form.tags.field.queryset %}
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input tag-checkbox" 
+                            type="checkbox" 
+                            id="tag_{{ tag.id }}" 
+                            name="tags" 
+                            value="{{ tag.id }}" 
+                            {% if tag.id in selected_tags %}checked{% endif %}>
+                        <label class="form-check-label" for="tag_{{ tag.id }}">
+                            {{ tag.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% for error in form.tags.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+    
+        <!-- Status Field -->
+        <div class="mb-3">
+            {{ form.status.label_tag }}
+            {{ form.status }}
+            {% for error in form.status.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+    
+        <button type="submit" class="btn btn-primary">Update Blog</button>
+    </form>
+    
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Categories Input Toggle
+        const categoriesInput = document.getElementById("categories-input");
+        const categoriesCollapse = document.getElementById("categories-collapse");
+        categoriesInput.addEventListener("click", () => {
+            categoriesCollapse.classList.toggle("show");
+        });
+    
+        // Tags Input Toggle
+        const tagsInput = document.getElementById("tags-input");
+        const tagsCollapse = document.getElementById("tags-collapse");
+        tagsInput.addEventListener("click", () => {
+            tagsCollapse.classList.toggle("show");
+        });
+    
+        // Checkbox Limit Logic
+        const formCheckContainers = document.querySelectorAll('.form-check-container');
+    
+        formCheckContainers.forEach(container => {
+            const maxSelect = parseInt(container.getAttribute('data-max-select'), 10);
+            const checkboxes = container.querySelectorAll('.form-check-input');
+    
+            const updateCheckboxState = () => {
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    
+                // If max selected, disable unchecked checkboxes
+                if (checkedCount >= maxSelect) {
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                            cb.parentElement.classList.add('disabled');
+                        }
+                    });
+                } else {
+                    // Re-enable all checkboxes if below the limit
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                        cb.parentElement.classList.remove('disabled');
+                    });
+                }
+            };
+    
+            // Initialize state based on pre-selected checkboxes
+            updateCheckboxState();
+    
+            // Add event listeners to checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateCheckboxState);
+            });
+        });
+    });
+    
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        ClassicEditor
+            .create(document.querySelector('#content-editor'))
+            .then(editor => {
+                // For elastic height (auto-growing)
+                const textArea = editor.ui.view.editable.element;
+                textArea.style.overflowY = "hidden"; // Prevent vertical scrollbar
+                textArea.style.resize = "none"; // Disable manual resizing
+
+                // Auto-grow content as you type
+                textArea.addEventListener("input", () => {
+                    textArea.style.height = 'auto';
+                    textArea.style.height = `${textArea.scrollHeight}px`;
+                });
+            })
+            .catch(error => {
+                console.error("CKEditor initialization failed:", error);
+            });
+    });
+</script>
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

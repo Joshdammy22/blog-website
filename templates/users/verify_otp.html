@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP{% endblock %}
+
+{% block contents %}
+<style>
+    /* Centering wrapper */
+    .otp-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center; /* Center items vertically */
+        background-color: #f9f9f9;
+        height: 40vh; /* Full height of the viewport */
+    }
+
+    /* Card styling */
+    .otp-card {
+        background: #ffffff; /* White background for the card */
+        border-radius: 12px; /* Rounded corners */
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+        padding: 2rem; /* Padding inside the card */
+        width: 100%;
+        max-width: 500px; /* Card width with max limit */
+        text-align: center;
+        font-family: Arial, sans-serif; /* Consistent font */
+        margin-top: 40px; /* Move the card down */
+    }
+
+    .otp-card h2 {
+        font-size: 2rem; /* Header size */
+        margin-bottom: 1.5rem; /* Spacing below the header */
+        color: #333333; /* Dark text for the header */
+    }
+
+    .otp-card label {
+        font-size: 1.1rem; /* Slightly larger label text */
+        margin-bottom: 0.5rem; /* Space below the label */
+        color: #555555; /* Darker text color for labels */
+        display: block; /* Block display for labels */
+    }
+
+    .otp-card input {
+        width: 100%; /* Full width input */
+        padding: 10px;
+        font-size: 1rem;
+        margin-bottom: 1rem; /* Space below the input */
+        border-radius: 8px; /* Rounded corners */
+        border: 1px solid #ccc; /* Light border */
+    }
+
+    .otp-card button {
+        width: 100%; /* Full width button */
+        padding: 12px;
+        font-size: 1.1rem;
+        margin-top: 1rem; /* Space above the button */
+        border-radius: 8px;
+        background-color: #4CAF50; /* Green background for button */
+        color: white; /* White text */
+        border: none;
+        cursor: pointer;
+    }
+
+    .otp-card button:hover {
+        background-color: #45a049; /* Slightly darker green on hover */
+    }
+
+    .messages {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 1rem;
+    }
+
+    .messages li {
+        color: red;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .otp-card .btn-warning {
+        background-color: #f0ad4e; /* Orange for the resend button */
+        border-color: #f0ad4e;
+    }
+
+    .otp-card .btn-warning:hover {
+        background-color: #ec971f; /* Darker orange on hover */
+    }
+</style>
+
+<div class="otp-wrapper">
+    <div class="otp-card">
+        <h2>Verify OTP</h2>
+        <form id="otp-form" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="otp">Enter OTP</label>
+                <input type="text" name="otp" id="otp" class="form-control" required style="font-size: 20px;">
+            </div>
+            <button id="submit-btn" type="submit" class="btn btn-primary">Verify</button>
+        </form>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Countdown Timer and Resend OTP Button -->
+        <div id="otp-timer">
+            <p>Request another token in <span id="countdown">60</span> seconds</p> <!-- Countdown message -->
+        </div>
+
+        <!-- Allow the user to request a new OTP if the current one has expired -->
+        <div id="resend-otp-button" style="display: none;">
+            <form action="{% url 'resend_otp' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Request a new OTP</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Prevent double form submission
+    const form = document.getElementById('otp-form');
+    const submitButton = document.getElementById('submit-btn');
+
+    let isFormSubmitting = false; // Track if the form is being submitted
+
+    form.addEventListener('submit', function (event) {
+        // Mark the form as being submitted
+        isFormSubmitting = true;
+
+        // Disable the submit button to prevent multiple submissions
+        submitButton.disabled = true;
+        submitButton.innerText = 'Verifying...'; // Optional: Update button text
+    });
+
+    // Warn users before they refresh or leave the page
+    window.addEventListener('beforeunload', function (event) {
+        // Check if the form is not being submitted
+        if (!isFormSubmitting) {
+            event.preventDefault();
+            event.returnValue = 'Are you sure you want to leave? Your progress may be lost.'; // Custom message (some browsers ignore this)
+        }
+    });
+
+    // Countdown timer logic
+    let countdown = 60; // 60 seconds for the countdown timer
+    let countdownElement = document.getElementById('countdown');
+    let resendButton = document.getElementById('resend-otp-button');
+
+    function startCountdown() {
+        let interval = setInterval(function () {
+            countdown--; // Decrement the countdown by 1
+            countdownElement.innerText = countdown; // Update the countdown display
+
+            if (countdown <= 0) {
+                clearInterval(interval); // Stop the timer when it reaches 0
+                countdownElement.style.display = 'none'; // Hide the countdown
+                resendButton.style.display = 'block'; // Show the resend OTP button
+            }
+        }, 1000); // Run the function every second
+    }
+
+    startCountdown(); // Start the countdown when the page loads
+</script>
+
+{% endblock %}
+
+
+
+
+
+{% block footer %}
+{% endblock %} 

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Home
+{% endblock title %}
+
+{% block contents %}
+<main>
+    <article>
+      <!-- HERO-->
+      <section class="section hero" aria-label="home">
+        <div class="container">
+
+          <h1 class="h1 hero-title">
+            <strong class="strong">Hey, we’re Blogy.</strong> See our thoughts, stories and ideas.
+          </h1>
+
+          <div class="wrapper">
+            {% if subscription_exists %}
+
+            {% else %}
+                <form method="post" class="newsletter-form">
+                    {% csrf_token %}
+                    {{ form.user_email }}
+                  <button type="submit" class="btn">Subscribe</button>
+                </form>
+
+                <p class="newsletter-text">
+                  Get the email newsletter and unlock access to members-only content and updates
+                </p>
+            {% endif %}
+          </div>
+      </section>
+
+
+
+      <!-- FEATURED POST -->
+      {% if featured_posts|length >= 3 %}        
+      <section class="section featured" aria-label="featured post">
+          <div class="container">
+            <p class="section-subtitle">
+              Get started with our <strong class="strong">best stories</strong>
+            </p>
+            <ul class="has-scrollbar">
+              {% for post in featured_posts %}
+                <li class="scrollbar-item">
+                  <div class="blog-card">
+                    <figure class="card-banner img-holder" style="--width: 500; --height: 600;">
+                      {% if post.blog_image %}
+                        <img src="{{ post.blog_image.url }}" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% else %}
+                        <img src="/path/to/default-image.jpg" width="500" height="600" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% endif %}
+                      <ul class="avatar-list absolute">
+                        {% for author in post.authors.all %}
+                          <li class="avatar-item">
+                            <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                              {% if author.profile_picture %}
+                                <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="{{ author.name }}" class="img-cover">
+                              {% else %}
+                                <img src="/path/to/default-avatar.jpg" width="100" height="100" loading="lazy" alt="{{ author.name }}" class="img-cover">
+                              {% endif %}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </figure>
+                    <div class="card-content">
+                      <ul class="card-meta-list">
+                        {% for tag in post.tags.all %}
+                          <li>
+                            <a href="#" class="card-tag">{{ tag.name }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                      <h3 class="h4">
+                        <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">
+                          {{ post.title }}
+                        </a>
+                      </h3>
+                      <p class="card-text">
+                        {{ post.excerpt }}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
+      {% else %}
+        <!-- Optionally handle the case where there are no featured posts -->
+      {% endif %}
+
+    
+
+      <!-- RECENT POST-->
+      {% if recent_posts %}
+        <section class="section recent" aria-label="recent post">
+          <div class="container">
+            <div class="title-wrapper">
+              <h2 class="h2 section-title">
+                See what we’ve <strong class="strong">written lately</strong>
+              </h2>
+              <div class="top-author">
+                <ul class="avatar-list">
+                  {% if top_authors %}
+                      {% for author in top_authors %}
+                      <li class="avatar-item">
+                        <a href="#" class="avatar large img-holder" style="--width: 100; --height: 100;">
+                          {% if author.profile_picture %}
+                            <img src="{{ author.profile_picture.url }}" width="100" height="100" alt="top author" class="img-cover">
+                          {% else %}
+                            <img src="/static/images/user.jpg" width="100" height="100" alt="top author" class="img-cover">
+                          {% endif %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  {% endif %}
+                  
+                </ul>
+                <span class="span">Meet our top authors</span>
+              </div>
+            </div>
+            <ul class="grid-list">
+              {% for post in recent_posts %}
+                <li>
+                  <div class="blog-card">
+                    <figure class="card-banner img-holder" style="--width: 550; --height: 660;">
+                      {% if post.blog_image %}
+                        <img src="{{ post.blog_image.url }}" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% else %}
+                        <img src="/path/to/default-image.jpg" width="550" height="660" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                      {% endif %}
+                      <ul class="avatar-list absolute">
+                        {% for author in post.authors.all %}
+                          <li class="avatar-item">
+                            <a href="{% url 'profile' post.author.username %}" class="avatar img-holder" style="--width: 100; --height: 100;">
+                              {% if author.profile_picture %}
+                                <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                              {% else %}
+                                <img src="/static/images/user.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                              {% endif %}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </figure>
+
+                    <div class="card-content">
+                      <ul class="card-meta-list">
+                        {% for tag in post.tags.all %}
+                          <li>
+                            <a href="#" class="card-tag">{{ tag.name }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                      <h3 class="h4">
+                        <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">{{ post.title }}</a>
+                      </h3>
+                      <p class="card-text">{{ post.content|truncatewords:20|safe }}</p>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
+      {% else %}
+
+      {% endif %}
+
+
+      <!-- RECOMMENDED POST-->
+      {% if recommended_posts %}
+      <section class="section recommended" aria-label="recommended post">
+        <div class="container">
+          <p class="section-subtitle">
+            <strong class="strong">Recommended</strong>
+          </p>
+          <ul class="grid-list">
+            {% for post in recommended_posts %}
+              <li>
+                <div class="blog-card">
+                  <figure class="card-banner img-holder" style="--width: 300; --height: 360;">
+                    {% if post.blog_image %}
+                      <img src="{{ post.blog_image.url }}" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% else %}
+                      <img src="/path/to/default-image.jpg" width="300" height="360" loading="lazy" alt="{{ post.title }}" class="img-cover">
+                    {% endif %}
+                    <ul class="avatar-list absolute">
+                      {% for author in post.authors.all %}
+                        <li class="avatar-item">
+                          <a href="#" class="avatar img-holder" style="--width: 100; --height: 100;">
+                            {% if author.profile_picture %}
+                              <img src="{{ author.profile_picture.url }}" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% else %}
+                              <img src="/static/images/user.jpg" width="100" height="100" loading="lazy" alt="Author" class="img-cover">
+                            {% endif %}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </figure>
+                  <div class="card-content">
+                    <h3 class="h5">
+                      <a href="{% url 'blog_detail' post.slug %}" class="card-title hover:underline">{{ post.title }}</a>
+                    </h3>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      {% else %}
+
+      {% endif %}
+
+      
+      <!-- - NEWS LETTER-->
+      {% if subscription_exists %}
+
+      {% else %}
+      <section class="section newsletter">
+        <h2 class="h2 section-title">
+          Subscribe to <strong class="strong">new posts</strong>
+        </h2>
+        <form method="post" class="newsletter-form">
+          {% csrf_token %}
+          {{ form.user_email }}
+        <button type="submit" class="btn">Subscribe</button>
+      </form>
+      </section>
+      {% endif %}
+    </article>
+  </main>
+{% endblock  %}
+

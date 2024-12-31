@@ -1,0 +1,628 @@
+{% extends 'base.html' %}
+
+{% block title %} User Analytics {% endblock %}
+
+{% block contents %}
+<style>
+  /* Parent Card for Centering */
+  .parent-card {
+    display: flex;
+    justify-content: center;
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 90%;  /* Adjust the max-width if necessary */
+    width: 100%;
+  }
+  
+  /* Analytics Header */
+  .analytics-header {
+    display: flex;
+    justify-content: space-between; /* Keep the cards horizontally aligned */
+    gap: 20px; /* Increased gap between the cards */
+    width: 100%;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  }
+  
+  /* Each Header Column (Card) */
+  .header-column {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    text-align: center;
+    padding: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* Vertically centers the contents */
+    align-items: center;      /* Horizontally centers the contents */
+    min-height: 150px;        /* Ensure the card has some minimum height */
+    flex: 1 1 30%;            /* Ensure cards have a fixed size, even when wrapped */
+  }
+  
+  /* Cards inner content */
+  .cards-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Icon Style */
+  .header-column i {
+    font-size: 40px; /* Adjusted size for the icon */
+    color: white;    /* Set icon color to white for visibility */
+    margin-bottom: 10px;  /* Added space between the icon and text */
+  }
+  
+  /* Header Text */
+  .header-column h3 {
+    margin: 10px 0;
+    font-size: 18px;  /* Adjusted font size */
+    font-weight: bold;
+  }
+  
+  /* Number (Large Text) */
+  .header-column h2 {
+    margin-top: 5px;
+    font-size: 24px;  /* Increased font size */
+    font-weight: bold;
+  }
+  
+  /* Optional: Add different background colors for each card */
+  .header-column:nth-child(1) {
+    background-color: #2962ff; /* Blue */
+    color: white; /* Text color will remain white */
+  }
+  .header-column:nth-child(2) {
+    background-color: #ff6d00; /* Orange */
+    color: white; /* Text color will remain white */
+  }
+  .header-column:nth-child(3) {
+    background-color: #2e7d32; /* Green */
+    color: white; /* Text color will remain white */
+  }
+  
+  /* Responsive Styling for Smaller Screens */
+  @media (max-width: 1024px) {
+    .analytics-header {
+      gap: 15px;  /* Reduced gap between cards on medium screens */
+    }
+  
+    .header-column {
+      flex: 1 1 30%; /* Keep cards in horizontal rectangle, reducing size */
+      padding: 20px;  /* Adjust padding for medium screens */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .analytics-header {
+      gap: 10px;  /* Reduced gap for smaller screens */
+    }
+  
+    .header-column {
+      flex: 1 1 30%;  /* Cards will stay in a horizontal layout */
+      padding: 15px;  /* Reduced padding */
+    }
+  
+    /* Reduce icon and text sizes for small screens */
+    .header-column i {
+      font-size: 35px; /* Smaller icon size */
+    }
+  
+    .header-column h3 {
+      font-size: 16px; /* Smaller text size */
+    }
+  
+    .header-column h2 {
+      font-size: 20px; /* Smaller large text size */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .analytics-header {
+      gap: 10px;  /* Even smaller gap for extra small screens */
+    }
+  
+    .header-column {
+      flex: 1 1 30%;  /* Ensure cards stay side by side even on small screens */
+      padding: 12px;  /* Further reduced padding for small devices */
+    }
+  
+    /* Further reduce icon and text sizes */
+    .header-column i {
+      font-size: 30px; /* Even smaller icon size */
+    }
+  
+    .header-column h3 {
+      font-size: 14px; /* Further reduced text size */
+    }
+  
+    .header-column h2 {
+      font-size: 18px; /* Reduced large text size */
+    }
+  }
+  
+
+
+  /* Blogs List Section */
+.blogs-list {
+  margin: 40px auto;
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 15px;
+}
+
+/* Title of the Blog List */
+.blogs-list h3 {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+/* Individual Blog Item */
+.blog-item {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Blog Title */
+.blog-item h4 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Blog Creation Date */
+.blog-item p {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 15px;
+}
+
+/* View Analytics Button */
+.view-analytics-btn {
+  background-color: #2962ff; /* Blue button */
+  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-analytics-btn:hover {
+  background-color:rgb(0, 143, 100); /* Darker blue on hover */
+}
+
+/* Analytics Dropdown */
+.analytics-dropdown {
+  display: none; /* Hidden by default */
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Analytics Options inside Dropdown */
+.analytics-options {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.analytics-options button {
+  background-color: #2962ff; /* Blue button */
+  color: white;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.analytics-options button:hover {
+  background-color: #003c8f; /* Darker blue on hover */
+}
+
+/* Canvas for Chart */
+.analytics-dropdown canvas {
+  width: 100%;
+  height: 300px; /* Default height for charts */
+}
+
+/* Responsive Styling for Blogs List */
+@media (max-width: 768px) {
+  .blogs-list {
+    padding: 0 10px;
+  }
+
+  .blog-item {
+    padding: 15px;
+  }
+
+  .blog-item h4 {
+    font-size: 18px;
+  }
+
+  .view-analytics-btn {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .analytics-options button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* Responsive Styling for Small Screens */
+@media (max-width: 480px) {
+  .blogs-list {
+    padding: 0 5px;
+  }
+
+  .blog-item {
+    padding: 10px;
+  }
+
+  .blog-item h4 {
+    font-size: 16px;
+  }
+
+  .view-analytics-btn {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+
+  .analytics-options button {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .analytics-dropdown canvas {
+    height: 250px; /* Adjust canvas height on small screens */
+  }
+}
+
+/* Pagination container */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    margin-bottom: 50px;
+}
+
+/* Pagination step links */
+.step-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Pagination link styles */
+.step-links a {
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px 15px;
+    background-color: #2962ff;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.step-links a:hover {
+    background-color: #0039cb;
+}
+
+/* Current page display */
+.step-links .current {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Hide pagination if there are no next or previous pages */
+.step-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.step-links a[disabled] {
+    color: #bbb;
+    pointer-events: none;
+}
+
+/* Optional: Adding extra space between the current page and other links */
+.step-links .current {
+    margin: 0 10px;
+}
+
+/* Only display pagination controls when needed */
+.step-links a {
+    visibility: visible;
+}
+
+.step-links a[disabled] {
+    visibility: hidden;
+}
+
+</style>
+<!-- Analytics Header Section -->
+<div class="parent-card">
+  <div class="analytics-header">
+    <div class="header-column">
+      <div class="cards-inner">
+        <i class="fas fa-blog"></i>
+        <h3>All Blogs</h3>
+        <h2>{{ total_blogs }}</h2>
+      </div>
+    </div>
+    <div class="header-column">
+      <div class="cards-inner">
+        <i class="fas fa-eye"></i>
+        <h3>Total Reads</h3>
+        <h2>{{ total_reads }}</h2>
+      </div>
+    </div>
+    <div class="header-column">
+      <div class="cards-inner">
+        <i class="fas fa-users"></i>
+        <h3>All Engagements</h3>
+        <h2>{{ total_engagements }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blogs List Section -->
+<div class="blogs-list">
+  <h3>My Blogs</h3>
+  {% for blog_data in blogs %}
+  <div class="blog-item">
+    <h4>{{ blog_data.blog.title }}</h4>
+    <p>{{ blog_data.blog.created_at|date:"F j, Y" }}</p>
+    <button class="view-analytics-btn" onclick="toggleAnalytics({{ blog_data.blog.id }}, {{ blog_data.chart_data|safe }})">
+      View Analytics
+    </button>
+
+    <!-- Analytics Dropdown -->
+    <div class="analytics-dropdown" id="analytics-dropdown-{{ blog_data.blog.id }}" style="display: none;">
+      <!-- Chart Switch Buttons -->
+      <div class="chart-buttons">
+        <button class="chart-btn active" id="bar-btn-{{ blog_data.blog.id }}" onclick="renderChart('bar', {{ blog_data.blog.id }}, {{ blog_data.chart_data|safe }})">Bar Chart</button>
+        <button class="chart-btn" id="line-btn-{{ blog_data.blog.id }}" onclick="renderChart('line', {{ blog_data.blog.id }}, {{ blog_data.chart_data|safe }})">Line Chart</button>
+        <button class="chart-btn" id="pie-btn-{{ blog_data.blog.id }}" onclick="renderChart('pie', {{ blog_data.blog.id }}, {{ blog_data.chart_data|safe }})">Pie Chart</button>
+      </div>
+
+      <!-- Chart Container -->
+      <div id="chart-container-{{ blog_data.blog.id }}" class="chart-container"></div>
+    </div>
+  </div>
+  {% empty %}
+  <p>You haven't published any blogs yet.</p>
+  {% endfor %}
+</div>
+
+
+<!-- Pagination Controls -->
+<div class="pagination">
+  <span class="step-links">
+      {% if page_obj.has_previous %}
+          <a href="?page=1">&laquo; first</a>
+          <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+      {% endif %}
+
+      {% if page_obj.paginator.num_pages > 1 %}
+          <span class="current">
+              Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+          </span>
+      {% endif %}
+
+      {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}">next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+  </span>
+</div>
+
+
+<script>
+  let currentDropdown = null;
+  let currentChartInstance = null;
+
+// Toggle Analytics Dropdown
+function toggleAnalytics(blogId, chartData) {
+  const dropdown = document.getElementById(`analytics-dropdown-${blogId}`);
+
+  // Close the previously open dropdown if it's not the current one
+  if (currentDropdown && currentDropdown !== dropdown) {
+    currentDropdown.style.display = 'none';
+    destroyCurrentChart();
+  }
+
+  // Toggle the current dropdown's visibility
+  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+  currentDropdown = dropdown.style.display === 'block' ? dropdown : null;
+
+  if (currentDropdown) {
+    renderChart('bar', blogId, chartData); // Default to Bar Chart
+  }
+}
+
+// Destroy the current chart
+function destroyCurrentChart() {
+  if (currentChartInstance) {
+    currentChartInstance.destroy();
+    currentChartInstance = null;
+  }
+}
+
+// Render Chart based on type
+function renderChart(type, blogId, chartData) {
+  destroyCurrentChart(); // Clear previous chart
+
+  // Remove 'active' class from all buttons
+  const buttons = document.querySelectorAll(`#analytics-dropdown-${blogId} .chart-btn`);
+  buttons.forEach(button => button.classList.remove('active'));
+
+  // Add 'active' class to the clicked button
+  const activeButton = document.getElementById(`${type}-btn-${blogId}`);
+  activeButton.classList.add('active');
+
+  // Chart container
+  const chartContainer = document.getElementById(`chart-container-${blogId}`);
+
+  // Chart options
+  let options = {};
+  if (type === 'bar') {
+    options = {
+      series: [{ name: 'Metrics', data: chartData }],
+      chart: { height: 350, type: 'bar' },
+      title: { text: 'Bar Chart: Blog Analytics', align: 'center' },
+      xaxis: { categories: ['Reads', 'Comments', 'Reactions'] },
+      yaxis: { title: { text: 'Count' } }
+    };
+  } else if (type === 'line') {
+    options = {
+      series: [{ name: 'Metrics', data: chartData }],
+      chart: { height: 350, type: 'line' },
+      title: { text: 'Line Chart: Blog Analytics', align: 'center' },
+      xaxis: { categories: ['Reads', 'Comments', 'Reactions'] },
+      yaxis: { title: { text: 'Count' } }
+    };
+  } else if (type === 'pie') {
+    options = {
+      series: chartData,
+      chart: { height: 350, type: 'pie' },
+      title: { text: 'Pie Chart: Blog Analytics', align: 'center' },
+      labels: ['Reads', 'Comments', 'Reactions']
+    };
+  }
+
+  // Render the chart
+  currentChartInstance = new ApexCharts(chartContainer, options);
+  currentChartInstance.render();
+}
+
+</script>
+
+<style>
+  .blogs-list {
+    margin: 20px;
+  }
+
+  .blog-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+  }
+
+  .analytics-dropdown {
+    display: none;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+    border-radius: 5px;
+  }
+
+  .chart-buttons {
+    margin-bottom: 15px;
+  }
+
+  .chart-btn {
+    padding: 10px 15px;
+    margin-right: 10px;
+    border: none;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  .chart-btn.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .chart-btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+  }
+
+  .chart-container {
+    width: 100%;
+    height: 350px;
+  }
+
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .blogs-list {
+      margin: 10px;
+    }
+
+    .blog-item {
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .chart-btn {
+      padding: 8px 12px;
+      font-size: 14px;
+      margin-right: 5px;
+    }
+
+    .chart-container {
+      height: 300px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .blogs-list {
+      margin: 5px;
+    }
+
+    .blog-item {
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    .chart-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+
+    .chart-container {
+      height: 250px;
+    }
+
+    .view-analytics-btn {
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+  }
+
+
+</style>
+
+
+{% endblock %}
+
+
+
+{% block footer %}
+{% endblock footer %}

@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %} Sign Up {% endblock title %}
+
+{% block contents %}
+<style>
+    .requirement {
+        color: #777;
+        font-size: 14px;
+    }
+    
+    .requirement.success {
+        color: green;
+    }
+    
+    .requirement.failure {
+        color: red;
+    }
+    
+    .password-input {
+        width: 100%;
+        padding: 8px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .input-group-append {
+        position: absolute;
+        right: 10px;
+        top: 8px;
+    }
+    
+    .fas.fa-eye {
+        cursor: pointer;
+    }
+    
+    #password-requirements {
+        margin-top: 10px;
+    }
+    
+    .text-muted {
+        color: gray;
+    }
+    
+    .text-success {
+        color: green;
+    }
+    
+    #password-requirements p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    /* General container for social register section */
+.social-register {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.social-register h4 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+/* Social buttons container */
+.social-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* General style for social buttons */
+.social-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Icon inside social buttons */
+.social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Facebook button styling */
+.facebook-btn {
+    background-color: #3b5998;
+    color: #fff;
+    border: 1px solid #3b5998;
+}
+
+.facebook-btn:hover {
+    background-color: #2d4373;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Twitter (X) button styling */
+.twitter-btn {
+    background-color: #1da1f2;
+    color: #fff;
+    border: 1px solid #1da1f2;
+}
+
+.twitter-btn:hover {
+    background-color: #0d8cd9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+    /* Styling for the eye icon inside the input field */
+    .input-group {
+        position: relative;
+    }
+
+    .input-group-append {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+    }
+
+    .fas.fa-eye, .fas.fa-eye-slash {
+        font-size: 1.2rem;
+    }
+
+    /* Error message styling */
+    .error-message {
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    .error-message p {
+        margin: 0;
+        color: #dc3545;  /* Red color for errors */
+    }
+
+    /* Styling for the registration form */
+    .register-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 30px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        /* Ensure container takes full width on smaller screens */
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom:50px;
+
+    }
+    
+    h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        text-align: center;
+    }
+    
+    /* Styling for form fields */
+    .form-field {
+        margin-bottom: 20px;
+    }
+    
+    .form-field label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 8px;
+    }
+    
+    .form-field input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    
+    /* Register button styling */
+    .register-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    
+    /* Hover effect for register button */
+    .register-btn:hover {
+        background-color: #0056b3;
+    }
+    
+    /* Login link below the form */
+    .login-link {
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    /* Login link styling */
+    .login-link a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    /* Hover effect for login link */
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Media Queries for Responsive Design */
+    
+    /* For medium to small screens (tablets and below) */
+    @media (max-width: 768px) {
+        .register-container {
+            padding: 20px;
+            max-width: 90%;
+        }
+    
+        h2 {
+            font-size: 20px;
+        }
+    
+        .form-field input {
+            padding: 12px;
+        }
+    
+        .register-btn {
+            padding: 14px;
+            font-size: 18px;
+        }
+    }
+    
+    /* For very small screens (mobile phones) */
+    @media (max-width: 480px) {
+        .register-container {
+            padding: 15px;
+            max-width: 95%;
+        }
+    
+        h2 {
+            font-size: 18px;
+        }
+    
+        .form-field input {
+            padding: 14px;
+            font-size: 16px;
+        }
+    
+        .register-btn {
+            padding: 16px;
+            font-size: 18px;
+        }
+    }
+    
+</style>
+<div class="register-container">
+    <h2 class="text-center">Register</h2>
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        
+        <!-- Username -->
+        <div class="form-field">
+            <label for="username">Username</label>
+            {{ form.username }}  <!-- Render username field -->
+            {% if form.username.errors %}
+                <div class="error-message">
+                    {% for error in form.username.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    
+        <!-- Email -->
+        <div class="form-field">
+            <label for="email">Email</label>
+            {{ form.email }}  <!-- Render email field -->
+            {% if form.email.errors %}
+                <div class="error-message">
+                    {% for error in form.email.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    
+        <!-- Password Field -->
+        <div class="form-field">
+            <label for="password1">Password</label>
+            <div class="input-group">
+                {{ form.password1 }}
+                <div class="input-group-append">
+                    <i class="fas fa-eye toggle-password" id="toggle-password1"></i>
+                </div>
+            </div>
+            {% if form.password1.errors %}
+                <div class="error-message">
+                    {% for error in form.password1.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-field">
+            <label for="password2">Confirm Password</label>
+            <div class="input-group">
+                {{ form.password2 }}
+                <div class="input-group-append">
+                    <i class="fas fa-eye toggle-password" id="toggle-password2"></i>
+                </div>
+            </div>
+            {% if form.password2.errors %}
+                <div class="error-message">
+                    {% for error in form.password2.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Register Button -->
+        <button type="submit" class="register-btn">Register</button>
+    </form>
+    
+    <!-- Optional: Add a link to login page -->
+    <div class="login-link">
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    </div>
+
+
+
+    <div class="social-register mt-4">
+        <h4>Or register with:</h4>
+        <div class="social-buttons">
+            <!-- Google -->
+            <a href="{% provider_login_url 'google' %}" class="social-btn">
+                <img src="{% static 'images/google.png' %}" alt="Google" class="social-icon">
+            </a>
+            <!-- Facebook -->
+            <a href="{% provider_login_url 'facebook' %}" class="social-btn">
+                <img src="{% static 'images/fb.png' %}" alt="Facebook" class="social-icon">
+            </a>
+    
+            <!-- X (Twitter) -->
+            <a href="{% provider_login_url 'twitter' %}" class="social-btn">
+                <img src="{% static 'images/x.png' %}" alt="Twitter" class="social-icon">
+            </a>
+    
+            <!-- GitHub -->
+            <a href="{% provider_login_url 'github' %}" class="social-btn">
+                <img src="{% static 'images/github.png' %}" alt="GitHub" class="social-icon">
+            </a>
+        </div>
+    </div>
+    
+    
+</div>
+
+<script>
+    // Function to toggle password visibility
+    function togglePassword(passwordFieldId, toggleIconId) {
+        const passwordField = document.getElementById(passwordFieldId);
+        const toggleIcon = document.getElementById(toggleIconId);
+
+        if (passwordField.type === "password") {
+            passwordField.type = "text";  // Show password
+            toggleIcon.classList.remove("fa-eye");  // Change to open eye icon
+            toggleIcon.classList.add("fa-eye-slash");  // Change to closed eye icon
+        } else {
+            passwordField.type = "password";  // Hide password
+            toggleIcon.classList.remove("fa-eye-slash");  // Change to closed eye icon
+            toggleIcon.classList.add("fa-eye");  // Change to open eye icon
+        }
+    }
+
+    // Add event listeners to the eye icons
+    document.getElementById('toggle-password1').addEventListener('click', function() {
+        togglePassword('id_password1', 'toggle-password1');
+    });
+    document.getElementById('toggle-password2').addEventListener('click', function() {
+        togglePassword('id_password2', 'toggle-password2');
+    });
+</script>
+
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}

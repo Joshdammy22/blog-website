@@ -12,76 +12,369 @@
   <meta name="title" content="Blogy - Hey, we’re Blogy. See our thoughts, stories and ideas.">
   <meta name="description" content="This is a blog html template made by codewithsadee">
 
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <!-- Favicon -->
-  <link rel="shortcut icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+  <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/svg+xml">
 
   <!-- Custom CSS link -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- Font Awesome CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+   <!-- ApexJS -->
+  <script src="{% static 'js/apexcharts.min.js' %}"></script>
+
 
   <!-- Google font link -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+   <!--- Google material icon -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    /* Search Bar Styling */
+.search-bar {
+  position: absolute; /* Ensure it is positioned relative to its nearest positioned ancestor or the viewport */
+  top: 0;
+  left: 0;
+  width: 100%; /* Make it span the full width of the viewport */
+  background-color: white; /* Set a background color to cover underlying elements */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for visibility */
+  z-index: 9999; /* Ensure it's above other elements */
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transform: translateY(-100%); /* Initially hide it above the viewport */
+  opacity: 0; /* Set it to invisible initially */
+  pointer-events: none; /* Prevent interactions when hidden */
+}
+
+/* When the search bar is active */
+.search-bar[data-active="true"] {
+  transform: translateY(0); /* Slide into view */
+  opacity: 1; /* Make it visible */
+  pointer-events: auto; /* Enable interactions */
+}
+
+/* Input wrapper styling */
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+/* Search input field */
+.input-field {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Close button styling */
+.search-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+/* Overlay styling */
+.overlay {
+  position: fixed; /* Cover the entire screen */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 9998; /* Place it just below the search bar */
+  opacity: 0; /* Initially hidden */
+  pointer-events: none; /* Prevent interactions when hidden */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* When the overlay is active */
+.overlay[data-active="true"] {
+  opacity: 1; /* Make it visible */
+  pointer-events: auto; /* Enable interactions */
+}
+
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.fa-bell.active {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+#notificationBadge {
+  position: absolute;
+  top: 18px; /* Moves the badge upward */
+  right: 79px; /* Moves the badge closer to the icon horizontally */
+  transform: translate(0, 0); /* Remove additional offset */
+  z-index: 10; /* Keeps the badge above other elements */
+  font-size: 12px; /* Adjusts text size */
+  padding: 2px 6px; /* Controls badge size */
+  background-color: #dc3545; /* Red color */
+  color: #fff; /* White text */
+  border-radius: 50%; /* Circular shape */
+  display: inline-block !important; /* Ensures visibility */
+}
+
+#notificationBadge.show {
+  display: inline-block; /* Show the badge when there are unread notifications */
+}
+
+
+
+    .flash-message {
+      visibility: hidden; /* Initially hidden */
+      opacity: 0; /* Invisible at the start */
+      position: fixed;
+      top: 60px; /* Adjust to place it below the navbar */
+      left: 50%; /* Center horizontally */
+      transform: translateX(-50%);
+      max-width: 400px;
+      width: 90%; /* Responsive on smaller screens */
+      z-index: 1050;
+      display: flex;
+      justify-content: space-between;
+      padding: 0;
+      align-items: center;
+      border-radius: 8px;
+      border: 2px solid #d4af37;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background-color: #fffdf0;
+      transition: opacity 0.5s ease, visibility 0.5s ease; /* Smooth fade-in and fade-out */
+  }
+  
+  /* Message Content */
+  .flash-message .flash-message-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+  }
+  
+  .flash-message p {
+      margin: 0;
+      flex-grow: 1;
+      font-size: 16px;
+      text-align: left;
+  }
+  
+  /* Close Button Styling */
+  .flash-message .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0 10px;
+      color: inherit;
+      transition: color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .flash-message .close-btn:hover {
+      color: #333;
+      transform: scale(1.1);
+      opacity: 0.8;
+  }
+  
+  /* Message-Specific Styling */
+  .flash-message-success {
+      background-color: #d4edda; /* Success */
+      color: #155724;
+      border-color: #28a745;
+      padding: 7px;
+  }
+  
+  .flash-message-error {
+      background-color: #f8d7da; /* Error */
+      color: #721c24;
+      border-color: #dc3545;
+      padding: 7px;
+  }
+  
+  .flash-message-warning {
+      background-color: #fff3cd; /* Warning */
+      color: #856404;
+      border-color: #ffc107;
+      padding: 7px;
+  }
+  
+  .flash-message-info {
+      background-color: #d1ecf1; /* Info */
+      color: #0c5460;
+      border-color: #17a2b8;
+      padding: 7px;
+  }
+  
+  /* Fade-in Animation */
+  .flash-message.fade-in {
+      visibility: visible; /* Make visible */
+      opacity: 1; /* Fully visible */
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+      .flash-message {
+          top: 50px; /* Adjust the position for smaller screens */
+          max-width: 90%; /* Use most of the screen width */
+          width: 90%;
+          border-radius: 6px;
+          font-size: 14px;
+      }
+  
+      .flash-message .flash-message-content {
+          padding: 8px 10px;
+      }
+  
+      .flash-message p {
+          font-size: 14px;
+      }
+  
+      .flash-message .close-btn {
+          font-size: 16px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .flash-message {
+          top: 40px;
+          max-width: 95%;
+          width: 95%;
+          font-size: 13px;
+          border-radius: 4px;
+      }
+  
+      .flash-message .flash-message-content {
+          padding: 6px 8px;
+      }
+  
+      .flash-message p {
+          font-size: 13px;
+      }
+  
+      .flash-message .close-btn {
+          font-size: 14px;
+      }
+  }  
+  </style>
 </head>
 
-<body>
 
-  <!-- Header Section -->
-  <header class="header section" data-header>
-    <div class="container">
+<body data-slug="{{ slug }}">
+<!-- Header Section -->
+<header class="header section" data-header>
+  <div class="container">
+    <a href="{% url 'home' %}" class="logo">
+      <img src="{% static 'images/logo.svg' %}" width="129" height="40" alt="Blogy logo">
+    </a>
 
-      <a href="#" class="logo">
-        <img src="{% static 'images/logo.svg' %}" width="129" height="40" alt="Blogy logo">
-      </a>
-
-      <nav class="navbar" data-navbar>
-        <ul class="navbar-list">
+    <nav class="navbar" data-navbar>
+      <ul class="navbar-list">
+        {% if user.is_authenticated %}
+          <button class="search-btn" aria-label="search" data-search-toggler>
+            <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+            <span class="span">Search</span>
+          </button>
           <li class="navbar-item">
-            <a href="#" class="navbar-link hover:underline" data-nav-link>Home</a>
+            <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
+            <a href="{% url 'blogs' %}" class="navbar-link hover:underline" data-nav-link>Recent Post</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-link hover:underline" data-nav-link>Membership</a>
+            <a href="{% url 'profile' %}" class="navbar-link hover:underline" data-nav-link>Profile</a>
           </li>
-        </ul>
-      </nav>
-
-      <div class="wrapper">
-        <button class="search-btn" aria-label="search" data-search-toggler>
-          <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
-          <span class="span">Search</span>
-        </button>
-
-        <button class="nav-toggle-btn" aria-label="toggle menu" data-nav-toggler>
-          <span class="span one"></span>
-          <span class="span two"></span>
-          <span class="span three"></span>
-        </button>
-
-        <a href="#" class="btn">Join</a>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- Search Bar Section -->
-  <div class="search-bar" data-search-bar>
-    <div class="input-wrapper">
-      <input type="search" name="search" placeholder="Search" class="input-field">
-      <button class="search-close-btn" aria-label="close search bar" data-search-toggler>
-        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          <li class="navbar-item position-relative">
+            <a href="{% url 'notifications' %}" class="navbar-link">
+              <i class="fas fa-bell {% if unread_notifications_count > 0 %}active{% endif %}" 
+                 id="notificationIcon" 
+                 aria-hidden="true">
+              </i>
+              {% if unread_notifications_count > 0 %}
+                <span class="badge bg-danger text-white rounded-circle position-absolute" 
+                      id="notificationBadge" 
+                      style="font-size: 12px;">
+                  {{ unread_notifications_count }}
+                </span>
+              {% endif %}
+            </a>
+          </li>
+          
+          <li class="navbar-item">
+            <a href="{% url 'logout' %}" class="navbar-link hover:underline" data-nav-link>Logout</a>
+          </li>
+        {% else %}
+          <li class="navbar-item">
+            <a href="{% url 'home' %}" class="navbar-link hover:underline" data-nav-link>Home</a>
+          </li>
+          <li class="navbar-item">
+            <a href="{% url 'login' %}" class="navbar-link hover:underline" data-nav-link>Login</a>
+          </li>
+          <li class="navbar-item">
+            <a href="{% url 'register' %}" class="navbar-link hover:underline" data-nav-link>Sign Up</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+    
+    
+      <button class="nav-toggle-btn" aria-label="toggle menu" data-nav-toggler>
+        <span class="span one"></span>
+        <span class="span two"></span>
+        <span class="span three"></span>
       </button>
     </div>
-    <p class="search-bar-text">Please enter at least 3 characters</p>
   </div>
+</header>
 
-  <div class="overlay" data-overlay data-search-toggler></div>
+
+<!-- Search Bar Section -->
+<div class="search-bar" data-search-bar>
+  <div class="input-wrapper">
+    <form method="get" action="{% url 'search' %}">
+      <input type="search" name="q" placeholder="Search blogs or authors" class="input-field" required minlength="3">
+      <button type="submit" aria-label="Search">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </form>
+    <button class="search-close-btn" aria-label="close search bar" data-search-toggler>
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+  <p class="search-bar-text">Please enter at least 3 characters</p>
+</div>
+
+<div class="overlay" data-overlay data-search-toggler></div>
+
+
+<!-- Flash messages -->
+{% if messages %}
+  <div id="flash-message" class="flash-message fade-in">
+      <div class="flash-message-content">
+          {% for message in messages %}
+              <p class="flash-message-{{ message.tags }}">{{ message }}</p>
+          {% endfor %}
+          <button id="close-btn" class="close-btn">X</button>
+      </div>
+  </div>
+{% endif %}
+
+
 
   <!-- Content Block -->
-  {% block contents %}{% endblock contents %}
+  {% block contents %}
+  
+  
+  {% endblock contents %}
 
   <!-- Footer Section -->
   {% block footer %}
@@ -140,7 +433,7 @@
 
       <div class="section footer-bottom">
         <p class="copyright">
-          &copy; Blogy 2022. Published by <a href="#" class="copyright-link hover:underline">codewithsadee</a>.
+          &copy; Blogy 2024. Published by <a href="#" class="copyright-link hover:underline">codewithsadee</a>.
         </p>
       </div>
 
@@ -151,9 +444,112 @@
   <!-- Custom JS link -->
   <script src="{% static 'js/script.js' %}" defer></script>
 
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const notificationBadge = document.getElementById("notificationBadge");
+      const notificationIcon = document.getElementById("notificationIcon");
+  
+      // Fetch notifications periodically
+      function fetchNotifications() {
+        fetch("/users/notifications/api") // Ensure the correct API URL
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            updateNotifications(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching notifications:", error);
+          });
+      }
+  
+      // Update badge, icon animation, and dropdown with new notifications
+      function updateNotifications(data) {
+        const unseenCount = data.unseen_count || 0;
+  
+        notificationBadge.textContent = unseenCount;
+  
+        if (unseenCount > 0) {
+          notificationBadge.style.display = "inline-block";
+          notificationIcon.classList.add("active");
+        } else {
+          notificationBadge.style.display = "inline-block"; // Always show the badge
+          notificationBadge.textContent = "0"; // Display "0" if no unread notifications
+          notificationIcon.classList.remove("active");
+        }
+      }
+  
+      // Initial fetch
+      fetchNotifications();
+  
+      // Poll every 30 seconds
+      setInterval(fetchNotifications, 30000);
+    });
+  </script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const searchToggler = document.querySelectorAll("[data-search-toggler]");
+      const searchBar = document.querySelector("[data-search-bar]");
+      const overlay = document.querySelector("[data-overlay]");
+    
+      searchToggler.forEach((toggler) => {
+        toggler.addEventListener("click", () => {
+          const isActive = searchBar.getAttribute("data-active") === "true";
+          searchBar.setAttribute("data-active", !isActive);
+          overlay.setAttribute("data-active", !isActive);
+        });
+      });
+    
+      overlay.addEventListener("click", () => {
+        searchBar.setAttribute("data-active", false);
+        overlay.setAttribute("data-active", false);
+      });
+    });
+    
+  </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Show flash message if it's present
+    const flashMessage = document.getElementById("flash-message");
+    const closeBtn = document.getElementById("close-btn");
+
+    if (flashMessage) {
+        // Add fade-in effect when the flash message is shown
+        setTimeout(() => {
+            flashMessage.classList.add("fade-in");
+        }, 10); // 10ms to allow CSS and DOM rendering
+
+        // Set a timeout to hide the flash message after 7 seconds
+        setTimeout(function () {
+            flashMessage.classList.remove("fade-in");
+            setTimeout(() => {
+                flashMessage.style.display = "none"; // Ensure it's removed after animation
+            }, 500); // Match the fade-out transition duration
+        }, 7000);
+
+        // Close button functionality
+        closeBtn.addEventListener("click", function () {
+            flashMessage.classList.remove("fade-in");
+            setTimeout(() => {
+                flashMessage.style.display = "none";
+            }, 500); // Match the fade-out transition duration
+        });
+    }
+});
+
+</script>
+
   <!-- Ionicon link -->
   <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+  <script src="https://cdn.ckeditor.com/ckeditor5/38.1.0/classic/ckeditor.js"></script>
+
 
 </body>
 

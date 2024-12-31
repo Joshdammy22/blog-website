@@ -57,3 +57,6 @@ const toggleSearchBar = function () {
 }
 
 addEventOnElem(searchTogglers, "click", toggleSearchBar);
+
+
+//APecChart

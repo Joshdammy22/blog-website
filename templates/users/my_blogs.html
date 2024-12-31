@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %} My Blogs {% endblock %}
+
+{% block contents %}
+<style>
+/* Blog List Styling */
+.blogs-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.blog-item {
+    width: 100%;
+}
+
+.blog-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.blog-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    transition: transform 0.2s ease-in-out;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.blog-card:hover {
+    transform: scale(1.02);
+}
+
+.blog-text {
+    flex: 2;
+    padding-right: 1rem;
+    text-align: left;
+}
+
+.blog-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.blog-categories,
+.blog-tags {
+    font-size: 0.95rem;
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.blog-content {
+    font-size: 1rem;
+    color: #444;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.blog-image-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 200px;
+}
+
+.blog-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #999;
+}
+
+.no-blogs {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #555;
+}
+</style>
+
+<section class="section my-blogs">
+    <div class="container">
+        <h2 class="h2 section-title">My Blogs</h2>
+        <ul class="blogs-list">
+            {% for blog in blogs %}
+            <li class="blog-item">
+                <a href="{% url 'blog_detail' blog.slug %}" class="blog-link">
+                    <div class="blog-card">
+                        <div class="blog-text">
+                            <h3 class="blog-title">{{ blog.title }}</h3>
+                            <p class="blog-content">
+                                {{ blog.content|truncatechars:150|safe }}
+                            </p>
+                            <p class="blog-categories"><strong>Categories:</strong> 
+                                {% for category in blog.categories.all %}
+                                    {{ category.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p class="blog-tags"><strong>Tags:</strong> 
+                                {% for tag in blog.tags.all %}
+                                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div class="blog-image-container">
+                            {% if blog.blog_image %}
+                            <img src="{{ blog.blog_image.url }}" alt="{{ blog.title }}" class="blog-image">
+                            {% else %}
+                            <div class="placeholder-image">No Image</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% empty %}
+            <li class="no-blogs">No blogs found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

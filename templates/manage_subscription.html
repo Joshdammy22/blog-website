@@ -1,0 +1,11 @@
+<form method="post">
+    {% csrf_token %}
+    <label for="monthly">Monthly Subscription</label>
+    <input type="radio" id="monthly" name="subscription_type" value="monthly">
+    
+    <label for="annual">Annual Subscription</label>
+    <input type="radio" id="annual" name="subscription_type" value="annual">
+    
+    <button type="submit" class="btn btn-primary">Subscribe</button>
+  </form>
+  
