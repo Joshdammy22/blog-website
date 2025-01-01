@@ -355,7 +355,7 @@
             <a href="{% provider_login_url 'google' %}" class="social-btn">
                 <img src="{% static 'images/google.png' %}" alt="Google" class="social-icon">
             </a>
-            <!-- Facebook -->
+            {% comment %} <!-- Facebook -->
             <a href="{% provider_login_url 'facebook' %}" class="social-btn">
                 <img src="{% static 'images/fb.png' %}" alt="Facebook" class="social-icon">
             </a>
@@ -368,7 +368,7 @@
             <!-- GitHub -->
             <a href="{% provider_login_url 'github' %}" class="social-btn">
                 <img src="{% static 'images/github.png' %}" alt="GitHub" class="social-icon">
-            </a>
+            </a> {% endcomment %}
         </div>
     </div>
     

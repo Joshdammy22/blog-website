@@ -85,7 +85,7 @@ TEMPLATES = [
 
 
 AUTHENTICATION_BACKENDS = [
-    'users.backends.CustomUserAuthenticationBackend',  # ustom backend
+    'users.backends.CustomUserAuthenticationBackend',  # custom backend
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth backend
 ]
 
@@ -161,6 +161,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ACCOUNT_ADAPTER = "users.adapter.CustomAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "users.adapter.CustomSocialAccountAdapter"
 
 from decouple import config, UndefinedValueError
 
@@ -256,6 +258,23 @@ ACCOUNT_LOGOUT_ON_GET = True
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/login-error/'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+
+
+
+# Configure Allauth to use email for authentication
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+
+# Redirects
+ACCOUNT_SIGNUP_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
