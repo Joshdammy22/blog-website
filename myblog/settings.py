@@ -1,6 +1,4 @@
 from pathlib import Path
-from decouple import config
-
 import os
 from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -111,7 +109,6 @@ WSGI_APPLICATION = 'myblog.wsgi.application'
 import os
 import sys
 from pathlib import Path
-from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -168,7 +165,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ACCOUNT_ADAPTER = "users.adapter.CustomAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.CustomSocialAccountAdapter"
 
-from decouple import config, UndefinedValueError
+from decouple import UndefinedValueError
 
 ENVIRONMENT = os.getenv('DJANGO_ENV', default='development')
 
