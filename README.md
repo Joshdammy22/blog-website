@@ -1,4 +1,3 @@
-```markdown
 # Blog Website
 
 A feature-rich blog website built with Django, designed to provide a platform for users to create, publish, and interact with blog content. Users can like posts, comment on them, follow other users, and receive notifications for various interactions.
