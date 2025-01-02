@@ -20,7 +20,7 @@ User = get_user_model()
 # Set up logging
 logger = logging.getLogger(__name__)
 
-
+@login_required
 def create_blog(request):
     categories = Category.objects.all()
     tags = Tag.objects.all()
@@ -56,7 +56,7 @@ def create_blog(request):
         'tags': json.dumps(list(tags.values('id', 'name')), cls=DjangoJSONEncoder),
     })
 
-
+@login_required
 def update_blog(request, slug):
     # Fetch the blog instance by slug
     blog = get_object_or_404(Blog, slug=slug)
@@ -99,6 +99,7 @@ def delete_blog(request, slug):
     return render(request, 'users/confirm_delete.html', context)
 
 # View to list all published blog posts
+@login_required
 def blog_list(request):
     blogs = Blog.objects.filter(status=1)  # Only show published blogs
     paginator = Paginator(blogs, 5)  # Show 5 blogs per page
@@ -233,7 +234,7 @@ def save_reaction(request, slug):
 
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
-
+@login_required
 def mark_as_read(request, slug):
     if request.method == "POST":
         blog = get_object_or_404(Blog, slug=slug)
@@ -281,6 +282,7 @@ from django.db.models import Q
 from .models import Blog
 from users.models import CustomUser
 
+@login_required
 def search(request):
     query = request.GET.get('q', '')
     blogs = Blog.objects.none()
