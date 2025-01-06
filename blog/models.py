@@ -41,7 +41,7 @@ class Blog(models.Model):
     created_at = models.DateField(auto_now=True)
     modified_at = models.DateField(auto_now_add=True)
     slug = models.SlugField(unique=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE)
     blog_image = models.ImageField(upload_to='blog_images/', null=True, blank=True)
     status = models.IntegerField(choices=STATUS, default=0)
     tags = models.ManyToManyField(Tag, related_name='blogs', blank=True)

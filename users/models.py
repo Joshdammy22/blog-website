@@ -48,49 +48,6 @@ class Profile(models.Model):
     # def is_subscription_active(self):
     #     return self.subscription_end and self.subscription_end > now()
 
-
-
-class UserActivity(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='activity')
-    last_login_time = models.DateTimeField(null=True, blank=True)
-    last_activity_time = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "UserActivity"
-        verbose_name_plural = "UserActivities"
-
-    def __str__(self):
-        return f"Activity for {self.user.username}"
-
-from django.apps import apps
-
-class UserBlogInteraction(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='blog_interactions')
-
-    # Get the Blog model dynamically to avoid circular import
-    blog = models.ForeignKey('blog.Blog', on_delete=models.CASCADE, related_name='user_interactions')
-    is_favorite = models.BooleanField(default=False)
-    liked = models.BooleanField(default=False, help_text="Indicates if the user liked the blog.")
-    commented = models.BooleanField(default=False, help_text="Indicates if the user commented on the blog.")
-    last_interaction = models.DateTimeField(default=now)
-
-    def __str__(self):
-        return f"{self.user.username} interaction with {self.blog.title}"
-
-
-
-class UserSettings(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='settings')
-    email_notifications = models.BooleanField(default=True, help_text="Enable or disable email notifications.")
-    dark_mode = models.BooleanField(default=False, help_text="Enable or disable dark mode for the app.")
-
-    class Meta:
-        verbose_name = "UserSetting"
-        verbose_name_plural = "UserSettings"
-
-    def __str__(self):
-        return f"Settings for {self.user.username}"
-
 class OTP(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     otp = models.CharField(max_length=6)
@@ -101,6 +58,49 @@ class OTP(models.Model):
     def is_expired(self):
         """Check if the OTP has expired."""
         return timezone.now() > self.expires_at
+
+# class UserActivity(models.Model):
+#     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='activity')
+#     last_login_time = models.DateTimeField(null=True, blank=True)
+#     last_activity_time = models.DateTimeField(null=True, blank=True)
+
+#     class Meta:
+#         verbose_name = "UserActivity"
+#         verbose_name_plural = "UserActivities"
+
+#     def __str__(self):
+#         return f"Activity for {self.user.username}"
+
+# from django.apps import apps
+
+# class UserBlogInteraction(models.Model):
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='blog_interactions')
+
+#     # Get the Blog model dynamically to avoid circular import
+#     blog = models.ForeignKey('blog.Blog', on_delete=models.CASCADE, related_name='user_interactions')
+#     is_favorite = models.BooleanField(default=False)
+#     liked = models.BooleanField(default=False, help_text="Indicates if the user liked the blog.")
+#     commented = models.BooleanField(default=False, help_text="Indicates if the user commented on the blog.")
+#     last_interaction = models.DateTimeField(default=now)
+
+#     def __str__(self):
+#         return f"{self.user.username} interaction with {self.blog.title}"
+
+
+
+# class UserSettings(models.Model):
+#     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='settings')
+#     email_notifications = models.BooleanField(default=True, help_text="Enable or disable email notifications.")
+#     dark_mode = models.BooleanField(default=False, help_text="Enable or disable dark mode for the app.")
+
+#     class Meta:
+#         verbose_name = "UserSetting"
+#         verbose_name_plural = "UserSettings"
+
+#     def __str__(self):
+#         return f"Settings for {self.user.username}"
+
+
 
 
 # class OTP(models.Model):
@@ -124,15 +124,15 @@ class OTP(models.Model):
 #     def __str__(self):
 #         return f"OTP for {self.user.username}"
 
-class SubscriptionList(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="subscription")
-    user_email = models.EmailField(max_length=254)
-    time_submitted = models.DateTimeField(default=now)
-    verified = models.BooleanField(default=False)
+# class SubscriptionList(models.Model):
+#     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="subscription")
+#     user_email = models.EmailField(max_length=254)
+#     time_submitted = models.DateTimeField(default=now)
+#     verified = models.BooleanField(default=False)
 
-    class Meta:
-        verbose_name = "SubscriptionList"
-        verbose_name_plural = "SubscriptionLists"
+#     class Meta:
+#         verbose_name = "SubscriptionList"
+#         verbose_name_plural = "SubscriptionLists"
 
-    def __str__(self):
-        return self.user_email
+#     def __str__(self):
+#         return self.user_email
