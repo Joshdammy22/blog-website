@@ -132,35 +132,52 @@ class UserUpdateForm(forms.ModelForm):
             raise ValidationError("This username is already taken. Please choose a different one.")
         return username
 
-
-# Profile Update Form
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['first_name', 'last_name', 'bio', 'birth_date', 'profile_picture']
+        fields = ['first_name', 'last_name', 'bio', 'profile_picture']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'input-field'}),
             'last_name': forms.TextInput(attrs={'class': 'input-field'}),
             'bio': forms.Textarea(attrs={'class': 'textarea-field', 'rows': 3}),
-            'birth_date': forms.DateInput(attrs={'class': 'input-field', 'type': 'date'}),
         }
+
+    def clean(self):
+        # Call the parent clean method
+        cleaned_data = super().clean()
+        
+        # Check if first_name is empty
+        first_name = cleaned_data.get('first_name')
+        if not first_name:
+            self.add_error('first_name', 'First name cannot be empty.')
+
+        # Check if last_name is empty
+        last_name = cleaned_data.get('last_name')
+        if not last_name:
+            self.add_error('last_name', 'Last name cannot be empty.')
+
+        # Check if bio is empty
+        bio = cleaned_data.get('bio')
+        if not bio:
+            self.add_error('bio', 'Bio cannot be empty.')
+
+        # Check if profile_picture is empty
+        profile_picture = cleaned_data.get('profile_picture')
+        if not profile_picture:
+            self.add_error('profile_picture', 'Profile picture cannot be empty.')
+
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
-        if Profile.objects.filter(first_name=first_name).exclude(id=self.instance.id).exists():
+        if first_name and Profile.objects.filter(first_name=first_name).exclude(id=self.instance.id).exists():
             raise ValidationError("This first name is already taken. Please choose a different one.")
         return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data.get('last_name')
-        if Profile.objects.filter(last_name=last_name).exclude(id=self.instance.id).exists():
+        if last_name and Profile.objects.filter(last_name=last_name).exclude(id=self.instance.id).exists():
             raise ValidationError("This last name is already taken. Please choose a different one.")
         return last_name
 
-    def clean_birth_date(self):
-        birth_date = self.cleaned_data.get('birth_date')
-        if birth_date and birth_date.year > 2020:
-            raise ValidationError("Please enter a valid birth date.")
-        return birth_date
 
 
 
