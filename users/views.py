@@ -3,8 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import *
-from .models import *
-from blog.models import *
+from .models import Profile, CustomUser
 from .utils import *
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -667,26 +666,26 @@ def change_email(request):
     
     return render(request, 'users/change_email.html')
 
-@login_required
-def manage_subscription(request):
-    if request.method == "POST":
-        subscription_type = request.POST.get('subscription_type')
-        if subscription_type == 'monthly':
-            duration = timedelta(days=30)
-        elif subscription_type == 'annual':
-            duration = timedelta(days=365)
-        else:
-            duration = None
+# @login_required
+# def manage_subscription(request):
+#     if request.method == "POST":
+#         subscription_type = request.POST.get('subscription_type')
+#         if subscription_type == 'monthly':
+#             duration = timedelta(days=30)
+#         elif subscription_type == 'annual':
+#             duration = timedelta(days=365)
+#         else:
+#             duration = None
 
-        if duration:
-            profile = request.user.profile
-            profile.subscription_type = subscription_type
-            profile.subscription_end = now() + duration
-            profile.save()
-            # Payment processing logic here
-            return redirect('home')  # Redirect to your desired page
+#         if duration:
+#             profile = request.user.profile
+#             profile.subscription_type = subscription_type
+#             profile.subscription_end = now() + duration
+#             profile.save()
+#             # Payment processing logic here
+#             return redirect('home')  # Redirect to your desired page
     
-    return render(request, 'manage_subscription.html')
+#     return render(request, 'manage_subscription.html')
 
 
 
