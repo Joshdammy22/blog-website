@@ -40,7 +40,7 @@ class Blog(models.Model):
     content = models.TextField()
     created_at = models.DateField(auto_now=True)
     modified_at = models.DateField(auto_now_add=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, max_length=200)
     author = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE)
     blog_image = models.ImageField(upload_to='blog_images/', null=True, blank=True)
     status = models.IntegerField(choices=STATUS, default=0)
