@@ -145,25 +145,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ACCOUNT_ADAPTER = "users.adapter.CustomAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.CustomSocialAccountAdapter"
 
-from decouple import UndefinedValueError
 
-ENVIRONMENT = os.getenv('DJANGO_ENV', default='development')
+ENVIRONMENT = os.getenv('DJANGO_ENV')
 
-try:
-    if ENVIRONMENT == 'production':
-        RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
-        RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
-
-        # Raise an error if test keys are mistakenly used in production
-        if RECAPTCHA_PUBLIC_KEY == "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" or \
-           RECAPTCHA_PRIVATE_KEY == "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe":
-            raise ValueError("Test reCAPTCHA keys are not allowed in production.")
-    else:
-        # Use test keys for development
-        RECAPTCHA_PUBLIC_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-        RECAPTCHA_PRIVATE_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
-except UndefinedValueError:
-    raise ValueError("RECAPTCHA keys are missing. Please define them in your environment.")
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
 
 
 SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
