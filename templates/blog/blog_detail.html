@@ -1,685 +1,619 @@
 {% extends 'base.html' %}
 
-
-{% block title%}
+{% block title %}
 {{ blog.title }}
-{% endblock title%}
+{% endblock title %}
 
 <body data-slug="{{ slug }}">
-  {% block contents %}
-  <style>
-    /* Blog Detail */
-    /* Hide the read count by default */
-    .read-count {
-      display: none;
-    }
+{% block contents %}
+<style>
+  /* Blog Detail */
+  /* Hide the read count by default */
+.read-count {
+    display: none;
+}
 
-    /* Show the read count when the 'show-read-count' class is added */
-    .read-count.show-read-count {
-      display: flex; /* Use flex or any other layout method you prefer */
-      align-items: center;
-    }
+/* Show the read count when the 'show-read-count' class is added */
+.read-count.show-read-count {
+    display: flex; /* Use flex or any other layout method you prefer */
+    align-items: center;
+}
 
-    .read-count i {
-      margin-right: 5px; /* Add space between the icon and the number */
-    }
+.read-count i {
+    margin-right: 5px; /* Add space between the icon and the number */
+}
 
-    /* Optional: Style the read count */
-    .read-count span {
-      font-size: 1rem; /* Adjust size as needed */
-      font-weight: bold;
-    }
+/* Optional: Style the read count */
+.read-count span {
+    font-size: 1rem; /* Adjust size as needed */
+    font-weight: bold;
+}
 
-    /* Style for the author's profile image */
-    .author-profile-image {
-      width: 40px; /* Adjust size as needed */
-      height: 40px;
-      border-radius: 50%; /* Make the image round */
-      object-fit: cover; /* Maintain aspect ratio and cover the circle */
-      margin-right: 10px; /* Add spacing between image and text */
-    }
+  /* Style for the author's profile image */
+  .author-profile-image {
+    width: 40px;            /* Adjust size as needed */
+    height: 40px;
+    border-radius: 50%;     /* Make the image round */
+    object-fit: cover;      /* Maintain aspect ratio and cover the circle */
+    margin-right: 10px;     /* Add spacing between image and text */
+  }
+  
+  /* Align the author's name and publication date */
+  .author-details {
+    display: flex;
+    flex-direction: column; /* Stack name and date vertically */
+  }
+  
+  .author-name {
+    font-weight: bold;
+    margin-bottom: 2px;     /* Adjust spacing between name and date */
+  }
+  
+  .publish-date {
+    font-size: 0.9em;       /* Slightly smaller font for the date */
+    color: #666;            /* Lighter color for the date */
+  }
+  
+  /* Flex container for the author link */
+  .author-link {
+    display: flex;
+    align-items: center;    /* Align image and text vertically */
+    text-decoration: none;  /* Remove underline from the link */
+    color: inherit;         /* Inherit text color */
+  }
+  
 
-    /* Align the author's name and publication date */
-    .author-details {
-      display: flex;
-      flex-direction: column; /* Stack name and date vertically */
-    }
+  .reactions {
+    margin-top: 20px;
+  }
+  
+  .reaction-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .reaction-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  /* Styling when the button is clicked */
+.reaction-btn.clicked {
+    background-color: #007bff; /* You can change this to any color you prefer */
+    color: white;
+    border-color: #007bff;
+}
+  .reaction-btn:hover {
+    background-color: #e5e7eb;
+  }
+  
+  .reaction-counts {
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
 
-    .author-name {
-      font-weight: bold;
-      margin-bottom: 2px; /* Adjust spacing between name and date */
-    }
+  .blog-detail .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
 
-    .publish-date {
-      font-size: 0.9em; /* Slightly smaller font for the date */
-      color: #666; /* Lighter color for the date */
-    }
+  .post-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+  }
 
-    /* Flex container for the author link */
-    .author-link {
-      display: flex;
-      align-items: center; /* Align image and text vertically */
-      text-decoration: none; /* Remove underline from the link */
-      color: inherit; /* Inherit text color */
-    }
+  .post-meta {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 25px;
+  }
 
-    .reactions {
-      margin-top: 20px;
-    }
+  .post-banner-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
 
-    .reaction-buttons {
-      display: flex;
-      gap: 10px;
-    }
+  .post-content {
+    line-height: 1.9;
+    font-size: 1.2rem;
+    color: #444;
+    margin-bottom: 40px;
+  }
 
-    .reaction-btn {
-      background: #f3f4f6;
-      border: 1px solid #d1d5db;
-      padding: 10px 15px;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    /* Styling when the button is clicked */
-    .reaction-btn.clicked {
-      background-color: #007bff; /* You can change this to any color you prefer */
-      color: white;
-      border-color: #007bff;
-    }
-    .reaction-btn:hover {
-      background-color: #e5e7eb;
-    }
+  /* General Styling */
+.comments-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
 
-    .reaction-counts {
-      margin-top: 10px;
-      font-size: 1.2rem;
-    }
+.comments-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
 
-    .blog-detail .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+/* Comment Item */
+.comment-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-    .post-title {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 15px;
-    }
+/* Comment Author */
+.comment-author {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
 
-    .post-meta {
-      font-size: 1.1rem;
-      color: #666;
-      margin-bottom: 25px;
-    }
+/* Comment Author's Profile Image */
+.author-profile-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-    .post-banner-image {
-      width: 100%;
-      height: auto;
-      margin-bottom: 20px;
-      border-radius: 5px;
-    }
+/* Author Details */
+.author-details {
+    margin-left: 10px;
+}
 
-    .post-content {
-      line-height: 1.9;
-      font-size: 1.2rem;
-      color: #444;
-      margin-bottom: 40px;
-    }
+.author-name {
+    font-weight: bold;
+    font-size: 16px;
+}
 
-    /* General Styling */
-    .comments-section {
-      margin-top: 30px;
-      padding: 20px;
-      background-color: #f9f9f9;
-      border-radius: 8px;
-    }
+.comment-date {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+}
 
-    .comments-title {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
+/* Comment Content */
+.comment-body {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
 
-    /* Comment Item */
+/* Empty Comment Message */
+.comment-empty {
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
     .comment-item {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 20px;
-      padding: 15px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
     }
 
-    /* Comment Author */
-    .comment-author {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    /* Comment Author's Profile Image */
     .author-profile-image {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Author Details */
-    .author-details {
-      margin-left: 10px;
+        width: 35px;
+        height: 35px;
     }
 
     .author-name {
-      font-weight: bold;
-      font-size: 16px;
+        font-size: 14px;
     }
 
     .comment-date {
-      display: block;
-      font-size: 12px;
-      color: #6c757d;
-    }
-
-    /* Comment Content */
-    .comment-body {
-      font-size: 14px;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    /* Empty Comment Message */
-    .comment-empty {
-      font-style: italic;
-      color: #6c757d;
-    }
-
-    /* Responsive Adjustments */
-    @media screen and (max-width: 768px) {
-      .comment-item {
-        padding: 10px;
-      }
-
-      .author-profile-image {
-        width: 35px;
-        height: 35px;
-      }
-
-      .author-name {
-        font-size: 14px;
-      }
-
-      .comment-date {
         font-size: 11px;
-      }
     }
+}
 
-    .comments-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
 
-    .comment-form {
-      margin-top: 30px;
-    }
+  .comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
 
-    .form-textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1.1rem;
-      margin-bottom: 15px;
-    }
+  .comment-form {
+    margin-top: 30px;
+  }
 
-    .btn-primary {
-      background-color: #007bff;
-      color: #fff;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
+  .form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
 
-    .btn-primary:hover {
-      background-color: #0056b3;
-    }
-    /* Read Count */
-    .read-count {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.85rem;
-      color: #777;
-    }
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
 
-    .icon {
-      font-size: 1rem;
-    }
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  /* Read Count */
+  .read-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: #777;
+  }
 
-    /* Blog Actions (Update & Delete Buttons) */
-    .blog-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+  .icon {
+    font-size: 1rem;
+  }
 
-    .btn {
-      padding: 0.5rem 1rem;
-      font-size: 0.85rem;
-      border: none;
-      border-radius: 4px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
+  /* Blog Actions (Update & Delete Buttons) */
+  .blog-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
-    .btn-update {
-      background-color: #4caf50;
-      color: white;
-    }
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
 
-    .btn-update:hover {
-      background-color: #45a049;
-    }
+  .btn-update {
+    background-color: #4caf50;
+    color: white;
+  }
 
-    .btn-delete {
-      background-color: #f44336;
-      color: white;
-    }
+  .btn-update:hover {
+    background-color: #45a049;
+  }
 
-    .btn-delete:hover {
-      background-color: #e53935;
-    }
-    /* Modal Overlay */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-      cursor: pointer;
-    }
+  .btn-delete {
+    background-color: #f44336;
+    color: white;
+  }
 
-    /* Modal Container */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 500px;
-      background: white;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  .btn-delete:hover {
+    background-color: #e53935;
+  }
+  /* Modal Overlay */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    cursor: pointer;
+}
 
-    /* Modal Content */
-    .modal-content {
-      padding: 20px;
-      text-align: center;
-    }
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    overflow: hidden;
+}
 
-    .modal-content h2 {
-      margin-bottom: 10px;
-    }
+/* Modal Content */
+.modal-content {
+    padding: 20px;
+    text-align: center;
+}
 
-    .modal-content p {
-      margin-bottom: 20px;
-      color: #666;
-    }
+.modal-content h2 {
+    margin-bottom: 10px;
+}
 
-    /* Modal Actions */
-    .modal-actions {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
+.modal-content p {
+    margin-bottom: 20px;
+    color: #666;
+}
 
-    /* Buttons */
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 8px;
-      text-transform: uppercase;
-      margin-top: 3px;
-    }
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
 
-    .btn-danger {
-      background: #e74c3c;
-      color: white;
-    }
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 8px;
+    text-transform: uppercase;
+    margin-top:3px;
+}
 
-    .btn-secondary {
-      background: #bdc3c7;
-      color: white;
-    }
+.btn-danger {
+    background: #e74c3c;
+    color: white;
 
-    /* Checkbox Toggle Logic */
-    #delete-modal-toggle:checked ~ .modal-overlay {
-      display: block;
-    }
+}
 
-    #delete-modal-toggle:checked ~ .modal {
-      display: block;
-    }
-  </style>
+.btn-secondary {
+    background: #bdc3c7;
+    color: white;
+}
 
-  <section class="blog-detail" aria-label="blog detail">
-    <div class="container">
-      <article class="blog-post">
-        <header class="post-header text-center">
-          <h1 class="post-title">{{ blog.title }}</h1>
-          <div class="post-meta">
-            <a
-              href="{% url 'profile' blog.author.username %}"
-              class="author-link"
-            >
-              <!-- Author's profile image -->
-              {% if blog.author.profile.profile_picture %}
-              <img
-                src="{{ blog.author.profile.profile_picture.url }}"
-                alt="{{ blog.author.username }}"
-                class="author-profile-image"
-              />
-              {% else %}
-              <img
-                src="/static/images/user.jpg"
-                alt="{{ blog.author.username }}"
-                class="author-profile-image"
-              />
-              {% endif %}
-              <div class="author-details">
-                <span class="author-name"
-                  >{{ blog.author.get_full_name|default:blog.author.username
-                  }}</span
-                >
-                <span class="publish-date"
-                  >Published on {{ blog.created_at|date:"F d, Y" }}</span
-                >
-              </div>
-            </a>
-            <!-- Read Count -->
-            {% if blog.read_count > 10 %}
+/* Checkbox Toggle Logic */
+#delete-modal-toggle:checked ~ .modal-overlay {
+    display: block;
+}
+
+#delete-modal-toggle:checked ~ .modal {
+    display: block;
+}
+
+</style>
+
+<section class="blog-detail" aria-label="blog detail">
+  <div class="container">
+    <article class="blog-post">
+      <header class="post-header text-center">
+        <h1 class="post-title">{{ blog.title }}</h1>
+        <div class="post-meta">
+          <a href="{% url 'profile' blog.author.username %}" class="author-link">
+            <!-- Author's profile image -->
+            {% if blog.author.profile.profile_picture %}
+              <img src="{{ blog.author.profile.profile_picture.url }}" alt="{{ blog.author.username }}" class="author-profile-image">
+            {% else %}
+              <img src="/static/images/user.jpg" alt="{{ blog.author.username }}" class="author-profile-image">
+            {% endif %}
+            <div class="author-details">
+              <span class="author-name">{{ blog.author.get_full_name|default:blog.author.username }}</span>
+              <span class="publish-date">Published on {{ blog.created_at|date:"F d, Y" }}</span>
+            </div>
+          </a>
+          <!-- Read Count -->
+          {% if blog.read_count > 10 %}
             <div class="read-count">
               <span class="icon">👁</span>
               <span>{{ blog.read_count }} reads</span>
             </div>
-            {% endif %}
-            <!-- Update and Delete Buttons -->
-            {% if request.user == blog.author %}
-            <div class="blog-actions">
-              <a href="{% url 'update_blog' blog.slug %}" class="btn btn-update"
-                >Update</a
-              >
-              <a href="{% url 'delete_blog' blog.slug %}" class="btn btn-delete"
-                >Delete</a
-              >
-            </div>
-            {% endif %}
-          </div>
-        </header>
-
-        <figure class="post-banner">
-          {% if blog.blog_image %}
-          <img
-            src="{{ blog.blog_image.url }}"
-            alt="{{ blog.title }}"
-            class="img-cover post-banner-image"
-          />
-          {% else %}
-          <img
-            src="/static/images/default-image.jpg"
-            alt="{{ blog.title }}"
-            class="img-cover post-banner-image"
-          />
           {% endif %}
-        </figure>
-
-        <div class="post-content">{{ blog.content|safe }}</div>
-      </article>
-
-      <section class="reactions">
-        <h3 class="h3">React to this post:</h3>
-        <div class="reaction-buttons">
-          <button
-            class="reaction-btn {% if current_reaction == 'like' %}clicked{% endif %}"
-            data-reaction="like"
-          >
-            👍 Like <span id="like-count">{{ reactions_summary.like }}</span>
-          </button>
-          <button
-            class="reaction-btn {% if current_reaction == 'love' %}clicked{% endif %}"
-            data-reaction="love"
-          >
-            ❤️ Love <span id="love-count">{{ reactions_summary.love }}</span>
-          </button>
-          <button
-            class="reaction-btn {% if current_reaction == 'haha' %}clicked{% endif %}"
-            data-reaction="haha"
-          >
-            😂 Haha <span id="haha-count">{{ reactions_summary.haha }}</span>
-          </button>
-          <button
-            class="reaction-btn {% if current_reaction == 'wow' %}clicked{% endif %}"
-            data-reaction="wow"
-          >
-            😮 Wow <span id="wow-count">{{ reactions_summary.wow }}</span>
-          </button>
-          <button
-            class="reaction-btn {% if current_reaction == 'applaud' %}clicked{% endif %}"
-            data-reaction="applaud"
-          >
-            👏 Applaud
-            <span id="applaud-count">{{ reactions_summary.applaud }}</span>
-          </button>
+          <!-- Update and Delete Buttons -->
+          {% if request.user == blog.author %}
+            <div class="blog-actions">
+              <a href="{% url 'update_blog' blog.slug %}" class="btn btn-update">Update</a>
+              <a href="{% url 'delete_blog' blog.slug %}" class="btn btn-delete">Delete</a>
+            </div>
+          {% endif %}
         </div>
-      </section>
+        
+      </header>
+      
+      
 
-      <section class="comments-section">
-        <h2 class="comments-title text-center">Comments</h2>
-        <ul class="comments-list">
+      <figure class="post-banner">
+        {% if blog.blog_image %}
+          <img src="{{ blog.blog_image.url }}" alt="{{ blog.title }}" class="img-cover post-banner-image">
+        {% else %}
+          <img src="/static/images/default-image.jpg" alt="{{ blog.title }}" class="img-cover post-banner-image">
+        {% endif %}
+      </figure>
+
+      <div class="post-content">
+        {{ blog.content|safe }}
+      </div>
+    </article>
+    
+    <section class="reactions">
+      <h3 class="h3">React to this post:</h3>
+      <div class="reaction-buttons">
+          <button class="reaction-btn {% if current_reaction == 'like' %}clicked{% endif %}" data-reaction="like">
+              👍 Like <span id="like-count">{{ reactions_summary.like }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'love' %}clicked{% endif %}" data-reaction="love">
+              ❤️ Love <span id="love-count">{{ reactions_summary.love }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'haha' %}clicked{% endif %}" data-reaction="haha">
+              😂 Haha <span id="haha-count">{{ reactions_summary.haha }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'wow' %}clicked{% endif %}" data-reaction="wow">
+              😮 Wow <span id="wow-count">{{ reactions_summary.wow }}</span>
+          </button>
+          <button class="reaction-btn {% if current_reaction == 'applaud' %}clicked{% endif %}" data-reaction="applaud">
+              👏 Applaud <span id="applaud-count">{{ reactions_summary.applaud }}</span>
+          </button>
+      </div>
+    </section>
+
+    <section class="comments-section">
+      <h2 class="comments-title text-center">Comments</h2>
+      <ul class="comments-list">
           {% for comment in blog.comments.all %}
           <li class="comment-item">
-            <div
-              class="comment-author d-flex align-items-center justify-content-center"
-            >
-              <!-- Commentor's profile image -->
-              {% if comment.author.profile.profile_picture %}
-              <img
-                src="{{ comment.author.profile.profile_picture.url }}"
-                alt="{{ comment.author.username }}"
-                class="author-profile-image"
-              />
-              {% else %}
-              <img
-                src="/static/images/user.jpg"
-                alt="{{ comment.author.username }}"
-                class="author-profile-image"
-              />
-              {% endif %}
-              <div class="author-details ms-3">
-                <strong class="author-name"
-                  >{{
-                  comment.author.get_full_name|default:comment.author.username
-                  }}</strong
-                >
-                <span class="comment-date"
-                  >{{ comment.created_at|date:"F d, Y H:i" }}</span
-                >
+              <div class="comment-author d-flex align-items-center justify-content-center">
+                  <!-- Commentor's profile image -->
+                  {% if comment.author.profile.profile_picture %}
+                      <img src="{{ comment.author.profile.profile_picture.url }}" alt="{{ comment.author.username }}" class="author-profile-image">
+                  {% else %}
+                      <img src="/static/images/user.jpg" alt="{{ comment.author.username }}" class="author-profile-image">
+                  {% endif %}
+                  <div class="author-details ms-3">
+                      <strong class="author-name">{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                      <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
+                  </div>
               </div>
-            </div>
-            <p class="comment-body" id="comment-{{ comment.id }}">
-              {{ comment.content }}
-            </p>
+              <p class="comment-body" id="comment-{{ comment.id }}">{{ comment.content }}</p>
           </li>
           {% empty %}
-          <li class="comment-empty">
-            No comments yet. Be the first to comment!
-          </li>
+          <li class="comment-empty">No comments yet. Be the first to comment!</li>
           {% endfor %}
-        </ul>
-        <form method="post" class="comment-form">
-          {% csrf_token %}
-          <textarea
-            name="comment_body"
-            rows="5"
-            class="form-textarea"
-            placeholder="Write a comment..."
-            required
-          ></textarea>
-          <button type="submit" class="btn btn-primary">Post Comment</button>
-        </form>
-      </section>
-    </div>
+      </ul>
+      <form method="post" class="comment-form">
+        {% csrf_token %}
+        <textarea name="comment_body" rows="5" class="form-textarea" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn btn-primary">Post Comment</button>
+      </form>
   </section>
+  
+  </div>
+</section>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const deleteButton = document.getElementById("delete-blog-btn");
-      const modal = document.querySelector(".modal");
-      const closeModalButtons = modal.querySelectorAll("[data-close-modal]");
 
-      deleteButton.addEventListener("click", function () {
-        modal.classList.add("show");
-      });
 
-      closeModalButtons.forEach((button) => {
-        button.addEventListener("click", function () {
-          modal.classList.remove("show");
-        });
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const deleteButton = document.getElementById("delete-blog-btn");
+    const modal = document.querySelector(".modal");
+    const closeModalButtons = modal.querySelectorAll("[data-close-modal]");
+
+    deleteButton.addEventListener("click", function () {
+      modal.classList.add("show");
+    });
+
+    closeModalButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        modal.classList.remove("show");
       });
     });
-  </script>
+  });
+</script>
 
-  <script>
-    // Ensure csrfToken is available
-    const csrfToken = document.querySelector(
-      "[name=csrfmiddlewaretoken]"
-    ).value;
+<script>
+  // Ensure csrfToken is available
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // Get the blog slug from a data attribute or JavaScript variable
-    const slug = document.body.dataset.slug; // Assuming the slug is set as a data attribute in the HTML body
+// Get the blog slug from a data attribute or JavaScript variable
+const slug = document.body.dataset.slug; // Assuming the slug is set as a data attribute in the HTML body
 
-    // Select all reaction buttons
-    const reactionButtons = document.querySelectorAll(".reaction-btn");
+// Select all reaction buttons
+const reactionButtons = document.querySelectorAll('.reaction-btn');
 
-    // Add event listener for each button
-    reactionButtons.forEach((button) => {
-      button.addEventListener("click", function () {
+// Add event listener for each button
+reactionButtons.forEach(button => {
+    button.addEventListener('click', function () {
         const reactionType = this.dataset.reaction;
 
         // Send the reaction to the backend
         fetch(`/blogs/blog/${slug}/save_reaction/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-          },
-          body: JSON.stringify({ reaction: reactionType }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success && data.reaction_summary) {
-              console.log(
-                "Reaction saved successfully:",
-                data.reaction_summary
-              );
-
-              // Update the reaction counts on the page
-              Object.keys(data.reaction_summary).forEach((reaction) => {
-                const countElement = document.querySelector(
-                  `#${reaction}-count`
-                );
-                if (countElement) {
-                  countElement.textContent = data.reaction_summary[reaction];
-                }
-              });
-
-              // Update the 'clicked' class based on the current reaction
-              reactionButtons.forEach((btn) => btn.classList.remove("clicked")); // Remove from all buttons
-              reactionButtons.forEach((btn) => {
-                if (btn.dataset.reaction === data.current_reaction) {
-                  btn.classList.add("clicked"); // Add to the correct button
-                }
-              });
-            } else {
-              console.error("Error saving reaction:", data.message);
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      });
-    });
-  </script>
-
-  <script>
-    // Detect if the user has scrolled to the bottom or spent enough time on the page
-    let timeSpent = 0;
-    const viewTimeThreshold = 10000; // 10 seconds
-    const scrollThreshold = 80; // percentage of page scrolled to the bottom
-    let readLogged = false;
-
-    // Track time spent on the page
-    setInterval(() => {
-      if (!readLogged) {
-        timeSpent += 1000; // Increment every second
-        if (
-          timeSpent >= viewTimeThreshold ||
-          window.scrollY + window.innerHeight >=
-            document.documentElement.scrollHeight * (scrollThreshold / 100)
-        ) {
-          // Send an AJAX request to register the read count
-          fetch(`mark-as-read/{{ blog.slug }}/`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": csrfToken, // Ensure CSRF token is included
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
             },
-            body: JSON.stringify({}),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.success) {
-                console.log("Blog post read count updated");
-              }
-            })
-            .catch((error) =>
-              console.error("Error updating read count:", error)
-            );
+            body: JSON.stringify({ reaction: reactionType }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.reaction_summary) {
+                console.log('Reaction saved successfully:', data.reaction_summary);
 
-          readLogged = true; // Prevent further updates
-        }
+                // Update the reaction counts on the page
+                Object.keys(data.reaction_summary).forEach(reaction => {
+                    const countElement = document.querySelector(`#${reaction}-count`);
+                    if (countElement) {
+                        countElement.textContent = data.reaction_summary[reaction];
+                    }
+                });
+
+                // Update the 'clicked' class based on the current reaction
+                reactionButtons.forEach(btn => btn.classList.remove('clicked')); // Remove from all buttons
+                reactionButtons.forEach(btn => {
+                    if (btn.dataset.reaction === data.current_reaction) {
+                        btn.classList.add('clicked'); // Add to the correct button
+                    }
+                });
+            } else {
+                console.error('Error saving reaction:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+});
+
+</script>
+
+
+
+<script>
+  // Detect if the user has scrolled to the bottom or spent enough time on the page
+  let timeSpent = 0;
+  const viewTimeThreshold = 10000; // 10 seconds
+  const scrollThreshold = 80; // percentage of page scrolled to the bottom
+  let readLogged = false;
+  
+  // Track time spent on the page
+  setInterval(() => {
+    if (!readLogged) {
+      timeSpent += 1000; // Increment every second
+      if (timeSpent >= viewTimeThreshold || window.scrollY + window.innerHeight >= document.documentElement.scrollHeight * (scrollThreshold / 100)) {
+        // Send an AJAX request to register the read count
+        fetch(`mark-as-read/{{ blog.slug }}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,  // Ensure CSRF token is included
+          },
+          body: JSON.stringify({}),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Blog post read count updated");
+          }
+        })
+        .catch(error => console.error("Error updating read count:", error));
+  
+        readLogged = true;  // Prevent further updates
       }
-    }, 1000); // Check every second
+    }
+  }, 1000);  // Check every second
   </script>
 
   <script>
     // Add this to the blog detail template to enable smooth scrolling
-    document.addEventListener("DOMContentLoaded", function () {
-      if (window.location.hash) {
-        const element = document.querySelector(window.location.hash);
-        if (element) {
-          window.scrollTo({ top: element.offsetTop, behavior: "smooth" });
-        }
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.location.hash) {
+      const element = document.querySelector(window.location.hash);
+      if (element) {
+          window.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
       }
-    });
-  </script>
+  }
+});
 
-  {% endblock %}
-</body>
+  </script>
+  
+{% endblock %}
+
+
