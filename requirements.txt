@@ -76,3 +76,4 @@ whitenoise==6.8.2
 WTForms==2.3.3
 zope.interface==7.2
 dj-database-url
+psycopg
