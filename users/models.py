@@ -49,3 +49,16 @@ class OTP(models.Model):
         """Check if the OTP has expired."""
         return timezone.now() > self.expires_at
 
+
+class SubscriptionList(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="subscription")
+    user_email = models.EmailField(max_length=254)
+    time_submitted = models.DateTimeField(default=now)
+    verified = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "SubscriptionList"
+        verbose_name_plural = "SubscriptionLists"
+
+    def __str__(self):
+        return self.user_email
