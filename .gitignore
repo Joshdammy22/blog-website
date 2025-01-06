@@ -18,3 +18,7 @@ Thumbs.db
 
 # Ignore environment files
 .env
+
+
+*/migrations/*
+!*/migrations/__init__.py
