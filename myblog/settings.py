@@ -116,36 +116,13 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-try:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('MYSQL_DATABASE_NAME'),
-            'USER': os.getenv('MYSQL_DATABASE_USER'),
-            'PASSWORD': os.getenv('MYSQL_DATABASE_PASSWORD'),
-            'HOST': os.getenv('MYSQL_DATABASE_HOST', default='127.0.0.1'),
-            'PORT': os.getenv('MYSQL_DATABASE_PORT', default='3306'),
-        }
-    }
-    
-    # Test MySQL connection
-    import pymysql
-    pymysql.connect(
-        host=os.getenv('MYSQL_DATABASE_HOST', default='127.0.0.1'),
-        user=os.getenv('MYSQL_DATABASE_USER'),
-        password=os.getenv('MYSQL_DATABASE_PASSWORD'),
-        database=os.getenv('MYSQL_DATABASE_NAME'),
-        port=int(os.getenv('MYSQL_DATABASE_PORT', default='3306')),
-    )
-except Exception as e:
-    print(f"Failed to connect to MySQL: {e}", file=sys.stderr)
-    print("Switching to SQLite as fallback database.", file=sys.stderr)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+import os
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
+
 
 
 # Password validation
