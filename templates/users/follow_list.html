@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Followings{% endblock title %}
+
+{% block contents %}
+<style>
+    .follow-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .follow-title {
+        text-align: center;
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 30px;
+    }
+
+    .follow-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .follow-card {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .follow-card-title {
+        text-align: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #444;
+    }
+
+    .follow-count {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #555;
+        margin-top: 10px;
+    }
+
+    .follow-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .follow-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .follow-item:last-child {
+        border-bottom: none;
+    }
+
+    .follow-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ddd;
+    }
+
+    .follow-link {
+        text-decoration: none;
+        color: #007bff;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .follow-link:hover {
+        text-decoration: underline;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .pagination a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .pagination a:hover {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .no-follow-data {
+        font-size: 1rem;
+        color: #666;
+        text-align: center;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="follow-container">
+    <h1 class="follow-title">Followers and Followees</h1>
+
+    <div class="follow-row">
+        <!-- Followers Section -->
+        <div class="follow-card">
+            <h3 class="follow-card-title">{{ followers_count }} Followers</h3>
+            {% if followers %}
+                <ul class="follow-list">
+                    {% for follow in followers %}
+                        <li class="follow-item">
+                            {% if follow.follower.profile_picture %}
+                                <img src="{{ follow.follower.profile_picture.url }}" alt="{{ follow.follower.username }}" class="follow-avatar">
+                            {% else %}
+                            <img src="{% static 'images/user.jpg' %}" alt="Default Profile Picture" class="follow-avatar">
+                            {% endif %}
+                            <a href="{% url 'profile' follow.follower.username %}" class="follow-link">{{ follow.follower.username }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-follow-data">You don't have any followers yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Followees Section -->
+        <div class="follow-card">
+            <h3 class="follow-card-title">{{ followees_count }} Following</h3>
+            {% if followees %}
+                <ul class="follow-list">
+                    {% for follow in followees %}
+                        <li class="follow-item">
+                            {% if follow.followee.profile_picture %}
+                                <img src="{{ follow.followee.profile_picture.url }}" alt="{{ follow.followee.username }}" class="follow-avatar">
+                            {% else %}
+                            <img src="{% static 'images/user.jpg' %}" alt="Default Profile Picture" class="follow-avatar">
+                            {% endif %}
+                            <a href="{% url 'profile' follow.followee.username %}" class="follow-link">{{ follow.followee.username }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-follow-data">You are not following anyone yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination Controls (Outside the Cards) -->
+    {% if followers.has_next or followers.has_previous or followees.has_next or followees.has_previous %}
+        <div class="pagination">
+            {% if followers.has_previous %}
+                <a href="?page_followers=1&page_followees=1">&laquo; First</a>
+                <a href="?page_followers={{ followers.previous_page_number }}&page_followees={{ followees.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span>Page {{ followers.number }} of {{ followers.paginator.num_pages }}</span>
+            {% if followers.has_next %}
+                <a href="?page_followers={{ followers.next_page_number }}&page_followees={{ followees.next_page_number }}">Next</a>
+                <a href="?page_followers={{ followers.paginator.num_pages }}&page_followees={{ followees.paginator.num_pages }}">Last &raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

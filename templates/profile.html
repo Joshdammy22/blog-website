@@ -5,6 +5,61 @@
 
 {% block contents %}
 <style>
+  .follow-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between icons */
+    margin-top: 10px;
+}
+
+.follow-count {
+    text-decoration: none;
+    color: #007bff;
+    display: flex;
+    flex-direction: column; /* Align icon and count vertically */
+    align-items: center; /* Center content horizontally */
+    font-size: 1.2rem; /* Adjust icon size */
+    position: relative;
+}
+
+.follow-count:hover {
+    color: #0056b3;
+}
+
+.follow-count span {
+    margin-top: 5px; /* Space between icon and count */
+    font-size: 0.9rem; /* Adjust count size */
+}
+
+.follow-count[title]:hover::after {
+    content: attr(title); /* Use the title attribute as tooltip text */
+    position: absolute;
+    bottom: -25px; /* Position below the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.follow-count[title]:hover::before {
+    content: "";
+    position: absolute;
+    bottom: -10px; /* Position for the triangle */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    z-index: 10;
+}
+
+
+
   /* General Styling */
   body {
     margin: 0;
@@ -229,9 +284,20 @@
         {% endif %}
       </ul>
 
-      <div class="text-center">
-        <p>{{ author.followers.count }} followers</p>
-      </div>
+      <div class="follow-info">
+        <!-- Display Followers Count -->
+        <a href="#" class="follow-count" title="Followers">
+            <i class="fas fa-user-friends"></i>
+            <span>{{ followers|length }}</span> Followers
+        </a>
+    
+        <!-- Display Followees Count -->
+        <a href="#" class="follow-count" title="Following">
+            <i class="fas fa-user-plus"></i>
+            <span>{{ followees|length }}</span> Following
+        </a>
+    </div>
+    
 
       {% if user.is_authenticated %}
       <form

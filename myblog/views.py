@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import uuid
 from django.core.mail import send_mail
-
+from django.db.models import Count
 
 
 def home(request):
@@ -20,7 +20,15 @@ def home(request):
         featured_posts = Blog.objects.filter(featured=True).exclude(status=0)[:6]
 
         # Get the top 2 authors (you can adjust the logic here based on your actual use case)
-        top_authors = Profile.objects.all()[:2]
+        top_authors = (
+            CustomUser.objects.filter(profile__isnull=False)
+            .annotate(blog_count=Count('blog'))  # Count the number of blogs for each user
+            .filter(blog_count__gt=2) 
+            .order_by('-blog_count')  # Order by the number of blogs, descending
+            .select_related('profile')[:2])        
+        
+        print("Top Authors: ", [author.username for author in top_authors])
+
 
         # Fetch the latest 6 posts ordered by 'created_at'
         recent_posts = Blog.objects.all().order_by('-created_at').exclude(status=0)[:6] 
@@ -93,3 +101,17 @@ def verify_email(request):
             messages.error(request, "Invalid verification token. Please try again.")
 
     return render(request, 'verify_email.html')
+
+
+# Custom error views
+def custom_400_error(request, exception=None):
+    return render(request, 'errors/400.html', status=400)
+
+def custom_403_error(request, exception=None):
+    return render(request, 'errors/403.html', status=403)
+
+def custom_404_error(request, exception=None):
+    return render(request, 'errors/404.html', status=404)
+
+def custom_500_error(request):
+    return render(request, 'errors/500.html', status=500)

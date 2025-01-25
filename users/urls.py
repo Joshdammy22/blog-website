@@ -26,9 +26,9 @@ urlpatterns = [
 
     # User Profile
     path('profile/', views.profile_view, name='profile'),
+    path('follows/', views.follow_list_view, name='follow_list'),
     path('profile/<str:username>/', views.author_profile_view, name='profile'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
-    path('profile/<int:user_id>/', views.profile_view, name='profile'),
 
     path('email-verification-request/', views.email_verification_request, name='email_verification_request'),
 

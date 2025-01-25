@@ -50,9 +50,86 @@ Blogs
     pointer-events: none;   /* Disable pointer events */
 }
 
+/* Style for the unique paragraph in the else block */
+.no-blogs-message {
+  text-align: center;
+  font-size: 30px;
+  color: #555;
+  margin-top: 2rem;
+  line-height: 1.6;
+}
+
+/* Style for the link inside the unique paragraph */
+.no-blogs-message a {
+  color: #007bff; /* Bootstrap's primary color */
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+.no-blogs-message a:hover {
+  color: #0056b3; /* Darker shade for hover */
+  text-decoration: underline;
+}
+
+.h1.section-title {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  margin: 0 auto 20px auto; /* Center the element with margin-bottom */
+}
+
+
+
+
+
+
+
+/* Responsive container */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .grid-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .blog-card {
+    flex-direction: column;
+  }
+
+  .blog-card img {
+    width: 100%;
+    height: auto;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+
+  .card-text {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .card-text {
+    font-size: 0.9rem;
+  }
+}
 </style>
 <section class="section blogs" aria-label="all blogs">
   <div class="container">
+    {% if blogs %}
     <h1 class="h1 section-title">Our Blogs</h1>
     <ul class="grid-list">
       {% for post in blogs %}
@@ -82,6 +159,17 @@ Blogs
         </li>
       {% endfor %}
     </ul>
+    {% else %}
+      <p class="no-blogs-message">
+        No blog available now to display, Create one
+        <a href="{% url 'create_blog' %}">here</a>
+      </p>
+    {% endif %}
+
+
+
+
+
     <div class="pagination">
       {% if blogs.has_previous %}
           <a href="?page={{ blogs.previous_page_number }}" class="btn">

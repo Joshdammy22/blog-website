@@ -115,8 +115,6 @@ class UserLoginForm(forms.Form):
         self.cleaned_data['user'] = user
         return self.cleaned_data
 
-
-
 # User Update Form
 class UserUpdateForm(forms.ModelForm):
     class Meta:
@@ -132,30 +130,37 @@ class UserUpdateForm(forms.ModelForm):
             raise ValidationError("This username is already taken. Please choose a different one.")
         return username
 
+
 class ProfileUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'input-field'}),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'input-field'}),
+    )
+
     class Meta:
         model = Profile
-        fields = ['first_name', 'last_name', 'bio', 'profile_picture']
+        fields = ['first_name', 'last_name', 'bio', 'profile_picture'] 
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'input-field'}),
-            'last_name': forms.TextInput(attrs={'class': 'input-field'}),
             'bio': forms.Textarea(attrs={'class': 'textarea-field', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        # Initialize first_name and last_name from the associated CustomUser model
+        user = kwargs.get('instance').user
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].initial = user.first_name
+        self.fields['last_name'].initial = user.last_name
 
     def clean(self):
         # Call the parent clean method
         cleaned_data = super().clean()
         
-        # Check if first_name is empty
-        first_name = cleaned_data.get('first_name')
-        if not first_name:
-            self.add_error('first_name', 'First name cannot be empty.')
-
-        # Check if last_name is empty
-        last_name = cleaned_data.get('last_name')
-        if not last_name:
-            self.add_error('last_name', 'Last name cannot be empty.')
-
         # Check if bio is empty
         bio = cleaned_data.get('bio')
         if not bio:
@@ -168,17 +173,27 @@ class ProfileUpdateForm(forms.ModelForm):
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
-        if first_name and Profile.objects.filter(first_name=first_name).exclude(id=self.instance.id).exists():
+        if first_name and Profile.objects.filter(user__first_name=first_name).exclude(id=self.instance.id).exists():
             raise ValidationError("This first name is already taken. Please choose a different one.")
         return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data.get('last_name')
-        if last_name and Profile.objects.filter(last_name=last_name).exclude(id=self.instance.id).exists():
+        if last_name and Profile.objects.filter(user__last_name=last_name).exclude(id=self.instance.id).exists():
             raise ValidationError("This last name is already taken. Please choose a different one.")
         return last_name
 
-
+    def save(self, commit=True):
+        # Update the related CustomUser fields (first_name and last_name)
+        profile = super().save(commit=False)
+        profile.user.first_name = self.cleaned_data.get('first_name', profile.user.first_name)
+        profile.user.last_name = self.cleaned_data.get('last_name', profile.user.last_name)
+        
+        if commit:
+            profile.user.save()  # Save CustomUser fields
+            profile.save()  # Save Profile model
+        
+        return profile
 
 
 
@@ -206,10 +221,6 @@ class CustomPasswordChangeForm(PasswordChangeForm):
             raise ValidationError("Password cannot be entirely numeric.")
         return password1
     
-
-
-
-
 
 class SubscriptionListForm(forms.Form):
     user_email = forms.EmailField(

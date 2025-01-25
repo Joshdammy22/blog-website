@@ -429,33 +429,69 @@ def logout_view(request):
     return redirect('home')  
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Profile
+from blog.models import Follow
+
 @login_required
 def profile_view(request):
     print(f"Accessing profile view for user {request.user.username}.")
-    
-    # Check if the user's profile exists
-    if not hasattr(request.user, 'profile'):
-        print(f"User {request.user.username} has no profile. Creating one.")
-        # Create the profile if it doesn't exist
-        profile = Profile.objects.create(user=request.user)
-        print(f"Created profile for user {request.user.username}.")
-    else:
-        # Retrieve the profile if it exists
-        profile = request.user.profile
-        print(f"User profile details: {profile}")
-    
-    # Check if the user is active
+
+    # Ensure the user is active
     if not request.user.is_active:
         print(f"User {request.user.username}'s email is not verified.")
-        messages.warning(request, 'Your account\'s email is yet verified.')
-        return redirect('email_verification_request')  # Redirect to an appropriate page for inactive accounts
+        messages.warning(request, "Your account's email is not verified.")
+        return redirect('email_verification_request')
 
-    # Pass the profile to the template
+    # Check if the user's profile exists
+    if not hasattr(request.user, 'profile'):
+        print(f"User {request.user.username} has no profile.")
+        messages.error(request, "You need to set up your profile before accessing this page.")
+        return redirect(request.META.get('HTTP_REFERER', reverse('home')))  # Redirect to the previous page or home
+
+    # Retrieve the profile
+    profile = request.user.profile
+
+    # Retrieve followers and followees
+    followers = Follow.objects.filter(followee=request.user).select_related('follower')
+    followees = Follow.objects.filter(follower=request.user).select_related('followee')
+
     context = {
         'profile': profile,
+        'followers': followers,
+        'followees': followees,
     }
 
     return render(request, 'users/profile.html', context)
+
+
+
+from django.core.paginator import Paginator
+
+@login_required
+def follow_list_view(request):
+    # Fetch followers and followees for the current user
+    followers = Follow.objects.filter(followee=request.user).select_related('follower')
+    followees = Follow.objects.filter(follower=request.user).select_related('followee')
+
+    # Pagination for followers and followees
+    followers_paginator = Paginator(followers, 10)
+    followees_paginator = Paginator(followees, 10)
+
+    page_followers = request.GET.get('page_followers')
+    page_followees = request.GET.get('page_followees')
+
+    followers_page = followers_paginator.get_page(page_followers)
+    followees_page = followees_paginator.get_page(page_followees)
+
+    context = {
+        'followers': followers_page,
+        'followees': followees_page,
+        'followers_count': followers.count(),
+        'followees_count': followees.count(),
+    }
+    return render(request, 'users/follow_list.html', context)
 
 
 @login_required
@@ -464,20 +500,36 @@ def author_profile_view(request, username):
     
     # Fetch the user by username
     author = get_object_or_404(User, username=username)
-    profile = author.profile  # Assuming a OneToOne relation exists with Profile
     
+    # Check if the author has a profile
+    if not hasattr(author, 'profile'):
+        print(f"Author {username} has no profile.")
+        messages.error(request, "Something went wrong.")
+        return redirect(request.META.get('HTTP_REFERER', reverse('home')))  # Redirect to the previous page or home
+
+    # Retrieve the author's profile
+    profile = author.profile  # Assuming a OneToOne relation exists with Profile
+
     # Get all published blogs by this author
     blogs = Blog.objects.filter(author=author, status=1).order_by('-created_at')  # Only published blogs
     
     # Check if the current user follows the author
     is_following = Follow.objects.filter(follower=request.user, followee=author).exists()
+    
+    # Fetch followers and followees of the author
+    followers = Follow.objects.filter(followee=author).select_related('follower')
+    followees = Follow.objects.filter(follower=author).select_related('followee')
 
     return render(request, 'profile.html', {
         'profile': profile,
         'author': author,
         'is_following': is_following,  # Pass the follow status
         'blogs': blogs,  # Pass the blogs to the template
+        'followers': followers,  # Followers of the author
+        'followees': followees,  # Users the author is following
     })
+
+
 
 
 

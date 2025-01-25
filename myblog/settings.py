@@ -15,10 +15,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =False
+# DEBUG =False
 
 
-ALLOWED_HOSTS = ['blog-website-khu8.onrender.com']
+# ALLOWED_HOSTS = ['blog-website-khu8.onrender.com']
 #ALLOWED_HOSTS = ['*']
 
 
@@ -118,8 +118,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+import os
+
+if os.getenv('DJANGO_ENV') == 'production':
+    # PostgreSQL Configuration for Production on Render
+    DATABASES = {
+     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+ }
+else:
+    # Local Development Database Configuration
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', 
+        'NAME': BASE_DIR / 'db.sqlite3', 
+    }
 }
 
 
@@ -219,7 +231,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Redirect URLs
-LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/'
+LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/users/login/'
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"  # After logout
 ACCOUNT_LOGOUT_ON_GET = True
@@ -266,8 +278,36 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+import os
+
+if os.getenv('DJANGO_ENV', default='development') == 'production':
+    # S3 Configuration for Production
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = 'bloggy-media' #S3 bucket name
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', default='us-east-2') 
+    AWS_QUERYSTRING_AUTH = False  # Makes files publicly accessible
+    AWS_S3_FILE_OVERWRITE = False  # Prevents overwriting files with the same name
+    AWS_DEFAULT_ACL = 'public-read'  # Sets public access permissions
+    
+    # Set the media URL to include the 'media/' prefix in the S3 bucket
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/'
+
+    # Security Settings for Production
+    DEBUG = False
+    ALLOWED_HOSTS = ['blog-website-khu8.onrender.com']  # Replace with your production domain(s)
+
+else:
+    # Local Development Media Settings
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
+    # Development-specific settings
+    DEBUG = True
+    ALLOWED_HOSTS = []
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

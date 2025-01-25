@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}
+404 - Page Not Found
+{% endblock title %}
+
+{% block content %}
+<style>
+    /* Container for the error card */
+.error-page {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 80%;
+    max-width: 500px;
+    margin: 20px;
+}
+
+/* Header for the error page */
+.error-page h1 {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+/* Message text */
+.error-page p {
+    font-size: 1.125rem;
+    margin-bottom: 20px;
+}
+
+/* Button to go back to homepage */
+.error-page a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #3498db;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.error-page a:hover {
+    background-color: #2980b9;
+}
+
+@media (max-width: 600px) {
+    .error-page {
+        width: 90%;
+    }
+
+    .error-page h1 {
+        font-size: 2rem;
+    }
+
+    .error-page p {
+        font-size: 1rem;
+    }
+
+    .error-page a {
+        font-size: 0.875rem;
+    }
+}
+</style>
+
+
+    <div class="error-page">
+        <h1>404 - Page Not Found</h1>
+        <p>Oops! The page you were looking for doesn't exist.</p>
+        <a href="/">Go back to the homepage</a>
+    </div>
+{% endblock %}
+
+
+{% block footer %} {% endblock %}

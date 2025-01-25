@@ -20,11 +20,8 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-
 class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True, null=True, help_text="Write a short bio about yourself.")
     email_verified = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='authors/', null=True, blank=True)
@@ -37,6 +34,27 @@ class Profile(models.Model):
     website = models.URLField(blank=True, null=True, help_text="Add a link to your personal website or portfolio.")
     location = models.CharField(max_length=100, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
+
+    # Property for first name
+    @property
+    def first_name(self):
+        return self.user.first_name
+
+    @first_name.setter
+    def first_name(self, value):
+        self.user.first_name = value
+        self.user.save()
+
+    # Property for last name
+    @property
+    def last_name(self):
+        return self.user.last_name
+
+    @last_name.setter
+    def last_name(self, value):
+        self.user.last_name = value
+        self.user.save()
+
 
 class OTP(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
